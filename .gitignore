@@ -1,0 +1,39 @@
+# General
+node_modules/
+dist/
+.env
+.env.*
+*.log
+*.pid
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Compilación
+/build
+/out
+.next
+*.tsbuildinfo
+
+# Docker
+docker-compose.override.yml
+
+# Archivos grandes y backups
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.bak
+
+# Prisma
+/prisma/dev.db
+/prisma/dev.db-journal
+
+# Otros
+coverage/
