@@ -1,0 +1,141 @@
+
+> backend@1.0.0 build
+> tsc
+
+src/modules/assignments/services/assignment.service.test.ts(17,80): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/modules/assignments/services/assignment.service.test.ts(24,61): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/modules/assignments/services/assignment.service.test.ts(25,94): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/modules/assignments/services/assignment.service.test.ts(29,80): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/modules/assignments/services/assignment.service.test.ts(35,80): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/modules/assignments/services/assignment.service.test.ts(41,61): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/modules/assignments/services/assignment.service.test.ts(47,61): error TS2322: Type 'string' is not assignable to type 'Date'.
+src/modules/auth/services/auth.service.ts(34,56): error TS2339: Property 'name' does not exist on type 'UserRole'.
+src/modules/auth/services/auth.service.ts(37,30): error TS2769: No overload matches this call.
+  Overload 1 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: null, options?: (SignOptions & { algorithm: "none"; }) | undefined): string', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'null'.
+  Overload 2 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Secret | Buffer<ArrayBufferLike> | JsonWebKeyInput | PrivateKeyInput, options?: SignOptions | undefined): string', gave the following error.
+    Type 'string' is not assignable to type 'number | StringValue | undefined'.
+  Overload 3 of 5, '(payload: string | object | Buffer<ArrayBufferLike>, secretOrPrivateKey: Secret | Buffer<ArrayBufferLike> | JsonWebKeyInput | PrivateKeyInput, callback: SignCallback): void', gave the following error.
+    Object literal may only specify known properties, and 'expiresIn' does not exist in type 'SignCallback'.
+src/modules/auth/strategies/google.strategy.ts(24,77): error TS2345: Argument of type 'null' is not assignable to parameter of type 'false | User | undefined'.
+src/modules/auth/strategies/google.strategy.ts(45,52): error TS2345: Argument of type 'null' is not assignable to parameter of type 'false | User | undefined'.
+src/modules/auth/strategies/google.strategy.ts(50,26): error TS2345: Argument of type 'null' is not assignable to parameter of type 'false | User | undefined'.
+src/modules/auth/strategies/google.strategy.ts(53,24): error TS2345: Argument of type 'null' is not assignable to parameter of type 'false | User | undefined'.
+src/modules/auth/strategies/local.strategy.ts(3,26): error TS7016: Could not find a declaration file for module 'passport-local'. '/home/admirai/apps/Practicasftrt/node_modules/passport-local/lib/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/passport-local` if it exists or add a new declaration (.d.ts) file containing `declare module 'passport-local';`
+src/modules/auth/tests/auth.test.ts(30,46): error TS2345: Argument of type '{ id: string; email: string; name: string; roles: { name: string; }[]; }' is not assignable to parameter of type 'User'.
+  Type '{ id: string; email: string; name: string; roles: { name: string; }[]; }' is missing the following properties from type 'User': password, isActive, createdAt, updatedAt
+src/modules/evidences/entities/evidence.entity.ts(14,3): error TS2322: Type 'null' is not assignable to type 'Date | undefined'.
+src/modules/evidences/services/evidence.service.test.ts(27,15): error TS2339: Property 'status' does not exist on type 'Evidence'.
+src/modules/evidences/services/evidence.service.test.ts(41,21): error TS2339: Property 'status' does not exist on type 'Evidence'.
+src/modules/evidences/services/evidence.service.test.ts(43,22): error TS2339: Property 'status' does not exist on type 'Evidence'.
+src/modules/groups/controllers/group.controller.ts(4,28): error TS2307: Cannot find module '../../auth/guards/roles.guard' or its corresponding type declarations.
+src/modules/groups/controllers/group.controller.ts(5,23): error TS2307: Cannot find module '../../auth/decorators/roles.decorator' or its corresponding type declarations.
+src/modules/groups/dtos/group.dto.ts(6,3): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/dtos/group.dto.ts(10,3): error TS2564: Property 'semester' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/dtos/group.dto.ts(14,3): error TS2564: Property 'teacherId' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/dtos/group.dto.ts(18,3): error TS2564: Property 'students' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/dtos/group.dto.ts(22,3): error TS2564: Property 'practiceCenter' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/entities/group.entity.ts(5,3): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/entities/group.entity.ts(6,3): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/entities/group.entity.ts(7,3): error TS2564: Property 'semester' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/entities/group.entity.ts(8,3): error TS2564: Property 'teacher' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/entities/group.entity.ts(9,3): error TS2564: Property 'students' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/entities/group.entity.ts(10,3): error TS2564: Property 'assignments' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/entities/group.entity.ts(11,3): error TS2564: Property 'practiceCenter' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/entities/group.entity.ts(12,3): error TS2564: Property 'active' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/entities/group.entity.ts(13,3): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/groups/entities/group.entity.ts(14,3): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+src/modules/practices/dtos/practice.dto.ts(5,3): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+src/modules/practices/entities/practice.entity.ts(2,3): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/practices/entities/practice.entity.ts(3,3): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+src/modules/programs/dtos/program.dto.ts(5,3): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+src/modules/programs/dtos/program.dto.ts(8,3): error TS2564: Property 'code' has no initializer and is not definitely assigned in the constructor.
+src/modules/programs/entities/program.entity.ts(2,3): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/programs/entities/program.entity.ts(3,3): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+src/modules/programs/entities/program.entity.ts(4,3): error TS2564: Property 'code' has no initializer and is not definitely assigned in the constructor.
+src/modules/public/controllers/public.controller.test.ts(6,24): error TS2554: Expected 1 arguments, but got 0.
+src/modules/public/services/public.service.ts(1,29): error TS2307: Cannot find module '../../../assignments/data' or its corresponding type declarations.
+src/modules/public/services/public.service.ts(2,26): error TS2307: Cannot find module '../../../students/data' or its corresponding type declarations.
+src/modules/public/services/public.service.ts(3,27): error TS2307: Cannot find module '../../../practices/data' or its corresponding type declarations.
+src/modules/public/services/public.service.ts(8,33): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/modules/public/services/public.service.ts(15,30): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/modules/public/services/public.service.ts(22,31): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/modules/roles/controllers/role.controller.ts(14,37): error TS18046: 'error' is of type 'unknown'.
+src/modules/roles/controllers/role.controller.ts(24,37): error TS18046: 'error' is of type 'unknown'.
+src/modules/roles/services/role.service.ts(27,5): error TS2322: Type '{ id: string; name: string; description: string | null; }[]' is not assignable to type 'Role[]'.
+  Type '{ id: string; name: string; description: string | null; }' is not assignable to type 'Role'.
+    Types of property 'description' are incompatible.
+      Type 'string | null' is not assignable to type 'string | undefined'.
+        Type 'null' is not assignable to type 'string | undefined'.
+src/modules/roles/services/role.service.ts(31,5): error TS2322: Type '{ id: string; name: string; description: string | null; } | null' is not assignable to type 'Role | null'.
+  Type '{ id: string; name: string; description: string | null; }' is not assignable to type 'Role'.
+    Types of property 'description' are incompatible.
+      Type 'string | null' is not assignable to type 'string | undefined'.
+        Type 'null' is not assignable to type 'string | undefined'.
+src/modules/roles/services/role.service.ts(35,5): error TS2322: Type '{ id: string; name: string; description: string | null; } | null' is not assignable to type 'Role | null'.
+  Type '{ id: string; name: string; description: string | null; }' is not assignable to type 'Role'.
+    Types of property 'description' are incompatible.
+      Type 'string | null' is not assignable to type 'string | undefined'.
+        Type 'null' is not assignable to type 'string | undefined'.
+src/modules/transfers/entities/transfer.entity.ts(2,3): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+src/modules/transfers/entities/transfer.entity.ts(3,3): error TS2564: Property 'asignacion_id' has no initializer and is not definitely assigned in the constructor.
+src/modules/transfers/entities/transfer.entity.ts(4,3): error TS2564: Property 'centro_anterior_id' has no initializer and is not definitely assigned in the constructor.
+src/modules/transfers/entities/transfer.entity.ts(5,3): error TS2564: Property 'centro_nuevo_id' has no initializer and is not definitely assigned in the constructor.
+src/modules/transfers/entities/transfer.entity.ts(6,3): error TS2564: Property 'motivo' has no initializer and is not definitely assigned in the constructor.
+src/modules/transfers/entities/transfer.entity.ts(7,3): error TS2564: Property 'usuario_responsable' has no initializer and is not definitely assigned in the constructor.
+src/modules/transfers/entities/transfer.entity.ts(8,3): error TS2564: Property 'fecha' has no initializer and is not definitely assigned in the constructor.
+src/modules/transfers/entities/transfer.entity.ts(9,3): error TS2564: Property 'fecha_creacion' has no initializer and is not definitely assigned in the constructor.
+src/modules/transfers/entities/transfer.entity.ts(10,3): error TS2564: Property 'fecha_actualizacion' has no initializer and is not definitely assigned in the constructor.
+src/modules/unions/services/union.service.ts(26,72): error TS18048: 'dto.nombre' is possibly 'undefined'.
+src/modules/users/controllers/user.controller.ts(18,37): error TS18046: 'error' is of type 'unknown'.
+src/modules/users/controllers/user.controller.ts(31,37): error TS18046: 'error' is of type 'unknown'.
+src/modules/users/controllers/user.controller.ts(45,37): error TS18046: 'error' is of type 'unknown'.
+src/modules/users/controllers/user.controller.ts(60,37): error TS18046: 'error' is of type 'unknown'.
+src/modules/users/controllers/user.controller.ts(72,37): error TS18046: 'error' is of type 'unknown'.
+src/modules/users/controllers/user.controller.ts(84,37): error TS18046: 'error' is of type 'unknown'.
+src/modules/users/dtos/user.dto.ts(7,3): error TS2564: Property 'email' has no initializer and is not definitely assigned in the constructor.
+src/modules/users/dtos/user.dto.ts(40,3): error TS2564: Property 'roleIds' has no initializer and is not definitely assigned in the constructor.
+src/modules/users/repositories/user.repository.ts(9,5): error TS2322: Type '({ roles: ({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]; } & { id: string; email: string; password: string | null; name: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; }) | null' is not assignable to type 'User | null'.
+  Type '{ roles: ({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]; } & { id: string; email: string; password: string | null; name: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; }' is not assignable to type 'User | null'.
+    Type '{ roles: ({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]; } & { id: string; email: string; password: string | null; name: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; }' is not assignable to type 'User'.
+      Types of property 'roles' are incompatible.
+        Type '({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]' is not assignable to type 'UserRole[]'.
+          Type '{ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; }' is not assignable to type 'UserRole'.
+            The types of 'role.description' are incompatible between these types.
+              Type 'string | null' is not assignable to type 'string | undefined'.
+                Type 'null' is not assignable to type 'string | undefined'.
+src/modules/users/repositories/user.repository.ts(16,5): error TS2322: Type '({ roles: ({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]; } & { id: string; email: string; password: string | null; name: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; }) | null' is not assignable to type 'User | null'.
+  Type '{ roles: ({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]; } & { id: string; email: string; password: string | null; name: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; }' is not assignable to type 'User | null'.
+    Type '{ roles: ({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]; } & { id: string; email: string; password: string | null; name: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; }' is not assignable to type 'User'.
+      Types of property 'roles' are incompatible.
+        Type '({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]' is not assignable to type 'UserRole[]'.
+          Type '{ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; }' is not assignable to type 'UserRole'.
+            The types of 'role.description' are incompatible between these types.
+              Type 'string | null' is not assignable to type 'string | undefined'.
+                Type 'null' is not assignable to type 'string | undefined'.
+src/modules/users/repositories/user.repository.ts(23,5): error TS2322: Type '({ roles: ({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]; } & { id: string; email: string; password: string | null; name: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; })[]' is not assignable to type 'User[]'.
+  Type '{ roles: ({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]; } & { id: string; email: string; password: string | null; name: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; }' is not assignable to type 'User'.
+    Types of property 'roles' are incompatible.
+      Type '({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]' is not assignable to type 'UserRole[]'.
+        Type '{ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; }' is not assignable to type 'UserRole'.
+          The types of 'role.description' are incompatible between these types.
+            Type 'string | null' is not assignable to type 'string | undefined'.
+              Type 'null' is not assignable to type 'string | undefined'.
+src/modules/users/repositories/user.repository.ts(29,5): error TS2322: Type '{ roles: ({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]; } & { id: string; email: string; password: string | null; name: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; }' is not assignable to type 'User'.
+  Types of property 'roles' are incompatible.
+    Type '({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]' is not assignable to type 'UserRole[]'.
+      Type '{ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; }' is not assignable to type 'UserRole'.
+        The types of 'role.description' are incompatible between these types.
+          Type 'string | null' is not assignable to type 'string | undefined'.
+            Type 'null' is not assignable to type 'string | undefined'.
+src/modules/users/repositories/user.repository.ts(36,5): error TS2322: Type '{ roles: ({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]; } & { id: string; email: string; password: string | null; name: string | null; isActive: boolean; createdAt: Date; updatedAt: Date; }' is not assignable to type 'User'.
+  Types of property 'roles' are incompatible.
+    Type '({ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; })[]' is not assignable to type 'UserRole[]'.
+      Type '{ role: { id: string; name: string; description: string | null; }; } & { userId: string; roleId: string; }' is not assignable to type 'UserRole'.
+        The types of 'role.description' are incompatible between these types.
+          Type 'string | null' is not assignable to type 'string | undefined'.
+            Type 'null' is not assignable to type 'string | undefined'.
+src/modules/users/services/user.service.ts(36,35): error TS2554: Expected 0 arguments, but got 1.
+src/swagger.ts(1,26): error TS2307: Cannot find module 'swagger-jsdoc' or its corresponding type declarations.
+src/swagger.ts(2,23): error TS2307: Cannot find module 'swagger-ui-express' or its corresponding type declarations.

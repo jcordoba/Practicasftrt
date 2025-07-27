@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./apps/frontend
+    image: practicasftr-frontend:latest
+    networks:
+      - network_public
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1024M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.practicasftr-frontend.rule=Host(`practicasftr.singularity.cyou`) && !PathPrefix(`/api`)
+        - traefik.http.routers.practicasftr-frontend.entrypoints=websecure
+        - traefik.http.routers.practicasftr-frontend.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.practicasftr-frontend.priority=10
+        - traefik.http.services.practicasftr-frontend.loadbalancer.server.port=80
+        - traefik.http.services.practicasftr-frontend.loadbalancer.passHostHeader=true
+        - traefik.docker.network=network_public
+
+  backend:
+    build:
+      context: ./apps/backend
+    image: practicasftr-backend:latest
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://postgres:zT924yhlrZplbblh@postgres:5432/practicasftr?schema=public
+      - JWT_SECRET=zT924yhlrZplbblh
+      - JWT_EXPIRES_IN=7d
+      - SESSION_SECRET=zT924yhlrZplbblh
+      - GOOGLE_CLIENT_ID=tu_google_client_id.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=tu_google_client_secret
+      - ADMIN_EMAILS=cordobapastor@unac.edu.co
+      - FRONTEND_URL=https://practicasftr.singularity.cyou
+    networks:
+      - network_public
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1024M
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.practicasftr-backend.rule=Host(`practicasftr.singularity.cyou`) && PathPrefix(`/api`)
+        - traefik.http.routers.practicasftr-backend.entrypoints=websecure
+        - traefik.http.routers.practicasftr-backend.tls.certresolver=letsencryptresolver
+        - traefik.http.routers.practicasftr-backend.priority=20
+        - traefik.http.routers.practicasftr-backend.service=practicasftr-backend
+        - traefik.http.services.practicasftr-backend.loadbalancer.server.port=3000
+        - traefik.http.services.practicasftr-backend.loadbalancer.passHostHeader=true
+        - traefik.docker.network=network_public
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: zT924yhlrZplbblh
+      POSTGRES_DB: practicasftr
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - network_public
+
+networks:
+  network_public:
+    external: true
+    name: network_public
+
+volumes:
+  postgres_data:

@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String?
+  name      String?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  roles     UserRole[]
+}
+
+model Role {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  users       UserRole[]
+}
+
+model UserRole {
+  userId String
+  roleId String
+
+  user   User @relation(fields: [userId], references: [id])
+  role   Role @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId])
+}
+
+model Union {
+  id                   String        @id @default(cuid())
+  nombre               String        @unique
+  estado               String        @default("ACTIVO")
+  fecha_creacion       DateTime      @default(now())
+  fecha_actualizacion  DateTime      @updatedAt
+  associations         Association[]
+}
+
+model Association {
+  id                   String     @id @default(cuid())
+  nombre               String
+  estado               String     @default("ACTIVO")
+  fecha_creacion       DateTime   @default(now())
+  fecha_actualizacion  DateTime   @updatedAt
+  unionId              String
+  union                Union      @relation(fields: [unionId], references: [id])
+  districts            District[]
+}
+
+model District {
+  id                   String         @id @default(cuid())
+  nombre               String
+  estado               String         @default("ACTIVO")
+  fecha_creacion       DateTime       @default(now())
+  fecha_actualizacion  DateTime       @updatedAt
+  associationId        String
+  association          Association    @relation(fields: [associationId], references: [id])
+  congregations        Congregation[]
+}
+
+model Congregation {
+  id                   String   @id @default(cuid())
+  nombre               String
+  estado               String   @default("ACTIVO")
+  fecha_creacion       DateTime @default(now())
+  fecha_actualizacion  DateTime @updatedAt
+  districtId           String
+  district             District @relation(fields: [districtId], references: [id])
+  esCentroPractica     Boolean  @default(false)
+}
+
+model Institution {
+  id                   String   @id @default(cuid())
+  nombre               String   @unique
+  estado               String   @default("ACTIVO")
+  fecha_creacion       DateTime @default(now())
+  fecha_actualizacion  DateTime @updatedAt
+  esCentroPractica     Boolean  @default(false)
+}
