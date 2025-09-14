@@ -1,55 +1,137 @@
-import { District } from '../entities/district.entity';
+import prisma from '../../../prisma';
 import { CreateDistrictDto, UpdateDistrictDto } from '../dtos/district.dto';
 
 export class DistrictService {
-  private districts: District[] = [];
-
-  create(dto: CreateDistrictDto): District {
+  async create(dto: CreateDistrictDto) {
     if (!dto.nombre) throw new Error('El nombre es obligatorio');
     if (!dto.associationId) throw new Error('El associationId es obligatorio');
-    if (this.districts.some(d => d.nombre.toLowerCase() === dto.nombre.toLowerCase() && d.associationId === dto.associationId)) {
+    
+    // Verificar si la asociación existe
+    const association = await prisma.association.findUnique({
+      where: { id: dto.associationId }
+    });
+    
+    if (!association) {
+      throw new Error('La asociación especificada no existe');
+    }
+    
+    // Verificar si ya existe un distrito con ese nombre en la asociación
+    const existingDistrict = await prisma.district.findFirst({
+      where: {
+        nombre: {
+          equals: dto.nombre,
+          mode: 'insensitive'
+        },
+        associationId: dto.associationId
+      }
+    });
+    
+    if (existingDistrict) {
       throw new Error('Ya existe un distrito con ese nombre en la asociación seleccionada');
     }
-    const now = new Date();
-    const district: District = {
-      id: (Math.random() * 1e18).toString(36),
-      nombre: dto.nombre,
-      associationId: dto.associationId,
-      estado: 'ACTIVO',
-      fecha_creacion: now,
-      fecha_actualizacion: now
-    };
-    this.districts.push(district);
-    return district;
+    
+    return await prisma.district.create({
+      data: {
+        nombre: dto.nombre,
+        associationId: dto.associationId
+      },
+      include: {
+        association: {
+          include: {
+            union: true
+          }
+        }
+      }
+    });
   }
 
-  update(id: string, dto: UpdateDistrictDto): District {
-    const district = this.districts.find(d => d.id === id && d.estado === 'ACTIVO');
-    if (!district) throw new Error('Distrito no encontrado');
+  async update(id: string, dto: UpdateDistrictDto) {
+    // Verificar si el distrito existe
+    const existingDistrict = await prisma.district.findUnique({
+      where: { id }
+    });
+    
+    if (!existingDistrict) {
+      throw new Error('Distrito no encontrado');
+    }
+    
+    // Verificar nombre duplicado si se está actualizando
     if (dto.nombre) {
-      if (this.districts.some(d => d.nombre.toLowerCase() === dto.nombre!.toLowerCase() && d.associationId === district.associationId && d.id !== id)) {
+      const duplicateDistrict = await prisma.district.findFirst({
+        where: {
+          nombre: {
+            equals: dto.nombre,
+            mode: 'insensitive'
+          },
+          associationId: existingDistrict.associationId,
+          id: {
+            not: id
+          }
+        }
+      });
+      
+      if (duplicateDistrict) {
         throw new Error('Ya existe un distrito con ese nombre en la asociación seleccionada');
       }
-      district.nombre = dto.nombre;
     }
-    if (dto.estado) district.estado = dto.estado;
-    district.fecha_actualizacion = new Date();
-    return district;
+    
+    return await prisma.district.update({
+      where: { id },
+      data: {
+        ...(dto.nombre && { nombre: dto.nombre })
+      },
+      include: {
+        association: {
+          include: {
+            union: true
+          }
+        }
+      }
+    });
   }
 
-  softDelete(id: string): boolean {
-    const district = this.districts.find(d => d.id === id && d.estado === 'ACTIVO');
-    if (!district) throw new Error('Distrito no encontrado');
-    district.estado = 'INACTIVO';
-    district.fecha_actualizacion = new Date();
-    return true;
+  async softDelete(id: string) {
+    const existingDistrict = await prisma.district.findUnique({
+      where: { id }
+    });
+    
+    if (!existingDistrict) {
+      throw new Error('Distrito no encontrado');
+    }
+    
+    return await prisma.district.delete({
+      where: { id }
+    });
   }
 
-  findAll(associationId?: string): District[] {
-    return this.districts.filter(d => d.estado === 'ACTIVO' && (!associationId || d.associationId === associationId));
+  async findAll(associationId?: string) {
+    return await prisma.district.findMany({
+      where: {
+        ...(associationId && { associationId })
+      },
+      include: {
+        association: {
+          include: {
+            union: true
+          }
+        }
+      },
+      orderBy: {
+        fecha_creacion: 'desc'
+      }
+    });
   }
 
-  findById(id: string): District | undefined {
-    return this.districts.find(d => d.id === id && d.estado === 'ACTIVO');
+  async findById(id: string) {
+    return await prisma.district.findUnique({
+      where: { id },
+      include: {
+        association: {
+          include: {
+            union: true
+          }
+        }
+      }
+    });
   }
 }

@@ -5,8 +5,12 @@ services:
     build:
       context: ./apps/frontend
     image: practicasftr-frontend:latest
+    ports:
+      - "3000:80"
     networks:
       - network_public
+    depends_on:
+      - postgres
     deploy:
       mode: replicated
       replicas: 1
@@ -29,8 +33,12 @@ services:
 
   backend:
     build:
-      context: ./apps/backend
+      context: .
+      dockerfile: ./apps/backend/Dockerfile
     image: practicasftr-backend:latest
+    command: sh -c "npx prisma migrate deploy && node dist/index.js"
+    ports:
+      - "3001:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -67,19 +75,20 @@ services:
 
   postgres:
     image: postgres:13
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: zT924yhlrZplbblh
       POSTGRES_DB: practicasftr
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    # volumes:
+    #   - postgres_data:/var/lib/postgresql/data
     networks:
       - network_public
 
 networks:
   network_public:
-    external: true
     name: network_public
 
-volumes:
-  postgres_data:
+# volumes:
+#   postgres_data:

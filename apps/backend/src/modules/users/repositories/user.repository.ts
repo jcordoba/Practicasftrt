@@ -2,7 +2,17 @@
 
 import { User } from '../entities/user.entity';
 import { CreateUserDto } from '../dtos/user.dto';
-import { prisma } from '../../../prisma';
+import prisma from '../../../prisma';
+
+// Función para normalizar el modelo de usuario
+function normalizeUser(u: any) {
+  if (!u) return u;
+  return {
+    ...u,
+    name: u.name ?? u.nombre ?? null,
+    isActive: u.isActive ?? (u.estado ? u.estado === 'ACTIVO' : true),
+  };
+}
 
 export class UserRepository {
   async findById(id: string): Promise<User | null> {
@@ -10,7 +20,7 @@ export class UserRepository {
       where: { id },
       include: { roles: { include: { role: true } } },
     });
-    return user as User | null;
+    return normalizeUser(user) as any;
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -18,33 +28,43 @@ export class UserRepository {
       where: { email },
       include: { roles: { include: { role: true } } },
     });
-    return user as User | null;
+    return normalizeUser(user) as User | null;
   }
 
-  async findAll(filter?: { programId?: string }): Promise<User[]> {
-    const where = filter?.programId ? { programId: filter.programId } : {};
+  async findAll(): Promise<User[]> {
     const users = await prisma.user.findMany({
-      where: where as any,
       include: { roles: { include: { role: true } } },
     });
-    return users as User[];
+    return users.map(normalizeUser) as any;
   }
 
-  async create(data: { email: string; password?: string | null; name?: string | null; programId?: string }): Promise<User> {
+  async create(data: any): Promise<User> {
     const user = await prisma.user.create({
       data,
       include: { roles: { include: { role: true } } },
     });
-    return user as User;
+    return user as any;
   }
 
   async update(id: string, data: { name?: string | null; isActive?: boolean; password?: string | null }): Promise<User> {
+    // Si recibimos isActive, traducirlo a estado para persistir
+    const toPersist: any = { ...data };
+    if (typeof data.isActive === 'boolean') {
+      toPersist.estado = data.isActive ? 'ACTIVO' : 'INACTIVO';
+      delete toPersist.isActive;
+    }
+    // Si recibimos name, traducirlo a nombre para persistir
+    if (data.name !== undefined) {
+      toPersist.nombre = data.name;
+      delete toPersist.name;
+    }
+    
     const user = await prisma.user.update({
       where: { id },
-      data,
+      data: toPersist,
       include: { roles: { include: { role: true } } },
     });
-    return user as User;
+    return normalizeUser(user) as any;
   }
 
   async assignRoles(userId: string, roleIds: string[]): Promise<void> {

@@ -1,55 +1,121 @@
-import { Association } from '../entities/association.entity';
+import prisma from '../../../prisma';
 import { CreateAssociationDto, UpdateAssociationDto } from '../dtos/association.dto';
 
 export class AssociationService {
-  private associations: Association[] = [];
-
-  create(dto: CreateAssociationDto): Association {
+  async create(dto: CreateAssociationDto) {
     if (!dto.nombre) throw new Error('El nombre es obligatorio');
     if (!dto.unionId) throw new Error('El unionId es obligatorio');
-    if (this.associations.some(a => a.nombre.toLowerCase() === dto.nombre.toLowerCase() && a.unionId === dto.unionId)) {
+    
+    // Verificar si la unión existe
+    const union = await prisma.union.findUnique({
+      where: { id: dto.unionId }
+    });
+    
+    if (!union) {
+      throw new Error('La unión especificada no existe');
+    }
+    
+    // Verificar si ya existe una asociación con ese nombre en la unión
+    const existingAssociation = await prisma.association.findFirst({
+      where: {
+        nombre: {
+          equals: dto.nombre,
+          mode: 'insensitive'
+        },
+        unionId: dto.unionId
+      }
+    });
+    
+    if (existingAssociation) {
       throw new Error('Ya existe una asociación con ese nombre en la unión seleccionada');
     }
-    const now = new Date();
-    const association: Association = {
-      id: (Math.random() * 1e18).toString(36),
-      nombre: dto.nombre,
-      unionId: dto.unionId,
-      estado: 'ACTIVO',
-      fecha_creacion: now,
-      fecha_actualizacion: now
-    };
-    this.associations.push(association);
-    return association;
+    
+    return await prisma.association.create({
+      data: {
+        nombre: dto.nombre,
+        unionId: dto.unionId
+      },
+      include: {
+        union: true
+      }
+    });
   }
 
-  update(id: string, dto: UpdateAssociationDto): Association {
-    const association = this.associations.find(a => a.id === id && a.estado === 'ACTIVO');
-    if (!association) throw new Error('Asociación no encontrada');
+  async update(id: string, dto: UpdateAssociationDto) {
+    // Verificar si la asociación existe
+    const existingAssociation = await prisma.association.findUnique({
+      where: { id }
+    });
+    
+    if (!existingAssociation) {
+      throw new Error('Asociación no encontrada');
+    }
+    
+    // Verificar nombre duplicado si se está actualizando
     if (dto.nombre) {
-      if (this.associations.some(a => a.nombre.toLowerCase() === dto.nombre!.toLowerCase() && a.unionId === association.unionId && a.id !== id)) {
+      const duplicateAssociation = await prisma.association.findFirst({
+        where: {
+          nombre: {
+            equals: dto.nombre,
+            mode: 'insensitive'
+          },
+          unionId: existingAssociation.unionId,
+          id: {
+            not: id
+          }
+        }
+      });
+      
+      if (duplicateAssociation) {
         throw new Error('Ya existe una asociación con ese nombre en la unión seleccionada');
       }
-      association.nombre = dto.nombre;
     }
-    if (dto.estado) association.estado = dto.estado;
-    association.fecha_actualizacion = new Date();
-    return association;
+    
+    return await prisma.association.update({
+      where: { id },
+      data: {
+        ...(dto.nombre && { nombre: dto.nombre })
+      },
+      include: {
+        union: true
+      }
+    });
   }
 
-  softDelete(id: string): boolean {
-    const association = this.associations.find(a => a.id === id && a.estado === 'ACTIVO');
-    if (!association) throw new Error('Asociación no encontrada');
-    association.estado = 'INACTIVO';
-    association.fecha_actualizacion = new Date();
-    return true;
+  async softDelete(id: string) {
+    const existingAssociation = await prisma.association.findUnique({
+      where: { id }
+    });
+    
+    if (!existingAssociation) {
+      throw new Error('Asociación no encontrada');
+    }
+    
+    return await prisma.association.delete({
+      where: { id }
+    });
   }
 
-  findAll(unionId?: string): Association[] {
-    return this.associations.filter(a => a.estado === 'ACTIVO' && (!unionId || a.unionId === unionId));
+  async findAll(unionId?: string) {
+    return await prisma.association.findMany({
+      where: {
+        ...(unionId && { unionId })
+      },
+      include: {
+        union: true
+      },
+      orderBy: {
+        fecha_creacion: 'desc'
+      }
+    });
   }
 
-  findById(id: string): Association | undefined {
-    return this.associations.find(a => a.id === id && a.estado === 'ACTIVO');
+  async findById(id: string) {
+    return await prisma.association.findUnique({
+      where: { id },
+      include: {
+        union: true
+      }
+    });
   }
 }

@@ -16,9 +16,7 @@ export class CreateUserDto {
   @IsString()
   name?: string | null = null;
 
-  @IsOptional()
-  @IsUUID()
-  programId?: string | null = null;
+
 }
 
 export class UpdateUserDto {
@@ -30,9 +28,7 @@ export class UpdateUserDto {
   @IsBoolean()
   isActive?: boolean;
 
-  @IsOptional()
-  @IsUUID()
-  programId?: string | null;
+
 }
 
 export class AssignRolesDto {

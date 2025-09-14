@@ -1,9 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -12,80 +8,575 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  password  String?
-  name      String?
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  roles     UserRole[]
+  id                          String                        @id @default(cuid())
+  email                       String                        @unique
+  password                    String?
+  estado                      String                        @default("ACTIVO")
+  fecha_actualizacion         DateTime                      @updatedAt
+  fecha_creacion              DateTime                      @default(now())
+  nombre                      String
+  programId                   String?
+  createdEvaluationDetails    EvaluationDetail[]            @relation("CreatedEvaluationDetails")
+  evaluatorDetails            EvaluationDetail[]            @relation("EvaluatorDetails")
+  updatedEvaluationDetails    EvaluationDetail[]            @relation("UpdatedEvaluationDetails")
+  studentPlacements           Placement[]                   @relation("StudentPlacements")
+  teacherPlacements           Placement[]                   @relation("TeacherPlacements")
+  tutorPlacements             Placement[]                   @relation("TutorPlacements")
+  createdPlacementProjections PlacementSocialProjection[]   @relation("CreatedPlacementProjections")
+  practicesAsStudent          Practice[]                    @relation("StudentToPractice")
+  practicesAsTeacher          Practice[]                    @relation("TeacherToPractice")
+  practicesAsTutor            Practice[]                    @relation("TutorToPractice")
+  reports                     PracticeReport[]              @relation("UserReports")
+  approvedReports             SniesReport[]                 @relation("ApprovedReports")
+  generatedReports            SniesReport[]                 @relation("GeneratedReports")
+  publishedReports            SniesReport[]                 @relation("PublishedReports")
+  updatedReports              SniesReport[]                 @relation("UpdatedReports")
+  createdProjections          SocialProjection[]            @relation("CreatedProjections")
+  organizedProjections        SocialProjection[]            @relation("OrganizedProjections")
+  updatedProjections          SocialProjection[]            @relation("UpdatedProjections")
+  createdParticipants         SocialProjectionParticipant[] @relation("CreatedParticipants")
+  participantProjections      SocialProjectionParticipant[] @relation("ParticipantProjections")
+  updatedParticipants         SocialProjectionParticipant[] @relation("UpdatedParticipants")
+  program                     Program?                      @relation(fields: [programId], references: [id])
+  roles                       UserRole[]
 }
 
 model Role {
-  id          String     @id @default(cuid())
-  name        String     @unique
-  description String?
-  users       UserRole[]
+  id                  String           @id @default(cuid())
+  descripcion         String?
+  estado              String           @default("ACTIVO")
+  fecha_actualizacion DateTime         @updatedAt
+  fecha_creacion      DateTime         @default(now())
+  nombre              String           @unique
+  permissions         RolePermission[]
+  users               UserRole[]
 }
 
 model UserRole {
-  userId String
-  roleId String
+  userId              String
+  roleId              String
+  fecha_actualizacion DateTime @updatedAt
+  fecha_creacion      DateTime @default(now())
+  id                  String   @id @default(cuid())
+  estado              String   @default("ACTIVO")
+  fecha_asignacion    DateTime @default(now())
+  role                Role     @relation(fields: [roleId], references: [id])
+  user                User     @relation(fields: [userId], references: [id])
 
-  user   User @relation(fields: [userId], references: [id])
-  role   Role @relation(fields: [roleId], references: [id])
+  @@unique([userId, roleId])
+}
 
-  @@id([userId, roleId])
+model Permission {
+  id                  String           @id @default(cuid())
+  nombre              String           @unique
+  descripcion         String?
+  modulo              String
+  accion              String
+  estado              String           @default("ACTIVO")
+  fecha_creacion      DateTime         @default(now())
+  fecha_actualizacion DateTime         @updatedAt
+  roles               RolePermission[]
+}
+
+model RolePermission {
+  id                  String     @id @default(cuid())
+  roleId              String
+  permissionId        String
+  estado              String     @default("ACTIVO")
+  fecha_asignacion    DateTime   @default(now())
+  fecha_creacion      DateTime   @default(now())
+  fecha_actualizacion DateTime   @updatedAt
+  permission          Permission @relation(fields: [permissionId], references: [id])
+  role                Role       @relation(fields: [roleId], references: [id])
+
+  @@unique([roleId, permissionId])
+}
+
+model Program {
+  id                  String       @id @default(cuid())
+  nombre              String       @unique
+  codigo              String       @unique
+  descripcion         String?
+  estado              String       @default("ACTIVO")
+  fecha_creacion      DateTime     @default(now())
+  fecha_actualizacion DateTime     @updatedAt
+  assignments         Assignment[]
+  evaluations         Evaluation[]
+  placements          Placement[]  @relation("ProgramPlacements")
+  practices           Practice[]
+  users               User[]
 }
 
 model Union {
-  id                   String        @id @default(cuid())
-  nombre               String        @unique
-  estado               String        @default("ACTIVO")
-  fecha_creacion       DateTime      @default(now())
-  fecha_actualizacion  DateTime      @updatedAt
-  associations         Association[]
+  id                  String        @id @default(cuid())
+  nombre              String
+  estado              String        @default("ACTIVO")
+  fecha_creacion      DateTime      @default(now())
+  fecha_actualizacion DateTime      @updatedAt
+  associations        Association[]
 }
 
 model Association {
-  id                   String     @id @default(cuid())
-  nombre               String
-  estado               String     @default("ACTIVO")
-  fecha_creacion       DateTime   @default(now())
-  fecha_actualizacion  DateTime   @updatedAt
-  unionId              String
-  union                Union      @relation(fields: [unionId], references: [id])
-  districts            District[]
+  id                  String     @id @default(cuid())
+  nombre              String
+  estado              String     @default("ACTIVO")
+  fecha_creacion      DateTime   @default(now())
+  fecha_actualizacion DateTime   @updatedAt
+  unionId             String
+  union               Union      @relation(fields: [unionId], references: [id])
+  districts           District[]
 }
 
 model District {
-  id                   String         @id @default(cuid())
-  nombre               String
-  estado               String         @default("ACTIVO")
-  fecha_creacion       DateTime       @default(now())
-  fecha_actualizacion  DateTime       @updatedAt
-  associationId        String
-  association          Association    @relation(fields: [associationId], references: [id])
-  congregations        Congregation[]
+  id                  String         @id @default(cuid())
+  nombre              String
+  estado              String         @default("ACTIVO")
+  fecha_creacion      DateTime       @default(now())
+  fecha_actualizacion DateTime       @updatedAt
+  associationId       String
+  congregations       Congregation[]
+  association         Association    @relation(fields: [associationId], references: [id])
 }
 
 model Congregation {
-  id                   String   @id @default(cuid())
-  nombre               String
-  estado               String   @default("ACTIVO")
-  fecha_creacion       DateTime @default(now())
-  fecha_actualizacion  DateTime @updatedAt
-  districtId           String
-  district             District @relation(fields: [districtId], references: [id])
-  esCentroPractica     Boolean  @default(false)
+  id                  String   @id @default(cuid())
+  nombre              String
+  estado              String   @default("ACTIVO")
+  fecha_creacion      DateTime @default(now())
+  fecha_actualizacion DateTime @updatedAt
+  districtId          String
+  esCentroPractica    Boolean  @default(false)
+  district            District @relation(fields: [districtId], references: [id])
 }
 
 model Institution {
-  id                   String   @id @default(cuid())
-  nombre               String   @unique
-  estado               String   @default("ACTIVO")
-  fecha_creacion       DateTime @default(now())
-  fecha_actualizacion  DateTime @updatedAt
-  esCentroPractica     Boolean  @default(false)
+  id                  String   @id @default(cuid())
+  nombre              String   @unique
+  estado              String   @default("ACTIVO")
+  fecha_creacion      DateTime @default(now())
+  fecha_actualizacion DateTime @updatedAt
+  esCentroPractica    Boolean  @default(false)
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  used      Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Estudiante {
+  id              String   @id @default(cuid())
+  nombreCompleto  String
+  tipoDocumento   String
+  numeroDocumento String
+  correo          String   @unique
+  telefono        String?
+  whatsapp        String?
+  direccion       String?
+  programa        String
+  semestre        Int
+  estadoMatricula String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Docente {
+  id              String   @id
+  nombreCompleto  String
+  tipoDocumento   String
+  numeroDocumento String
+  correo          String   @unique
+  telefono        String?
+  whatsapp        String?
+  direccion       String?
+  rol             String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Practice {
+  id          String           @id @default(uuid())
+  studentId   String
+  tutorId     String
+  teacherId   String
+  institution String
+  startDate   DateTime
+  endDate     DateTime
+  status      PracticeStatus   @default(PENDING)
+  hours       Int
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  programId   String?
+  program     Program?         @relation(fields: [programId], references: [id])
+  student     User             @relation("StudentToPractice", fields: [studentId], references: [id])
+  teacher     User             @relation("TeacherToPractice", fields: [teacherId], references: [id])
+  tutor       User             @relation("TutorToPractice", fields: [tutorId], references: [id])
+  reports     PracticeReport[]
+}
+
+model PracticeReport {
+  id           String   @id @default(uuid())
+  practiceId   String
+  userId       String
+  date         DateTime
+  activities   String
+  hours        Int
+  observations String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  practice     Practice @relation(fields: [practiceId], references: [id])
+  user         User     @relation("UserReports", fields: [userId], references: [id])
+}
+
+model Assignment {
+  id                  String           @id @default(cuid())
+  estudiante_id       String
+  practica_id         String
+  centro_id           String
+  programId           String?
+  fecha_inicio        DateTime?
+  estado              AssignmentStatus @default(ACTIVO)
+  usuario_asignador   String
+  fecha_creacion      DateTime         @default(now())
+  fecha_actualizacion DateTime         @updatedAt
+  program             Program?         @relation(fields: [programId], references: [id])
+  evaluations         Evaluation[]
+  evidences           Evidence[]
+}
+
+model Evaluation {
+  id                  String     @id @default(cuid())
+  asignacion_id       String
+  corte               Int
+  fecha               DateTime
+  evaluador_id        String
+  nota                Float
+  criterios           Json
+  observaciones       String
+  programId           String?
+  creado_por          String
+  fecha_creacion      DateTime   @default(now())
+  actualizado_por     String?
+  fecha_actualizacion DateTime   @updatedAt
+  assignment          Assignment @relation(fields: [asignacion_id], references: [id])
+  program             Program?   @relation(fields: [programId], references: [id])
+}
+
+model Evidence {
+  id                  String         @id @default(cuid())
+  asignacion_id       String
+  archivo             String
+  fecha               DateTime
+  hora                String
+  ubicacion           String?
+  estado              EvidenceStatus @default(PENDIENTE)
+  subido_por          String
+  fecha_subida        DateTime       @default(now())
+  revisado_por        String?
+  fecha_revision      DateTime?
+  motivo_rechazo      String?
+  sincronizado        Boolean        @default(false)
+  peso                Int?
+  fecha_creacion      DateTime       @default(now())
+  fecha_actualizacion DateTime       @updatedAt
+  assignment          Assignment     @relation(fields: [asignacion_id], references: [id])
+}
+
+model Term {
+  id                String             @id @default(cuid())
+  name              String             @unique
+  academicYear      Int
+  academicPeriod    Int
+  startDate         DateTime
+  endDate           DateTime
+  status            String             @default("ACTIVE")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  evaluationDetails EvaluationDetail[]
+  placements        Placement[]
+
+  @@index([academicYear, academicPeriod], map: "idx_term_academic_period")
+  @@index([academicYear], map: "idx_term_academic_year")
+  @@index([startDate, endDate], map: "idx_term_dates")
+  @@index([status], map: "idx_term_status")
+}
+
+model Placement {
+  id                String                      @id @default(cuid())
+  studentId         String
+  tutorId           String?
+  teacherId         String?
+  centerId          String
+  programId         String?
+  termId            String
+  startDate         DateTime?
+  endDate           DateTime?
+  status            PlacementStatus             @default(ACTIVE)
+  assignedBy        String
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
+  evaluationDetails EvaluationDetail[]
+  program           Program?                    @relation("ProgramPlacements", fields: [programId], references: [id])
+  student           User                        @relation("StudentPlacements", fields: [studentId], references: [id])
+  teacher           User?                       @relation("TeacherPlacements", fields: [teacherId], references: [id])
+  term              Term                        @relation(fields: [termId], references: [id])
+  tutor             User?                       @relation("TutorPlacements", fields: [tutorId], references: [id])
+  socialProjections PlacementSocialProjection[]
+
+  @@index([centerId], map: "idx_placement_center")
+  @@index([startDate, endDate], map: "idx_placement_dates")
+  @@index([programId], map: "idx_placement_program")
+  @@index([status], map: "idx_placement_status")
+  @@index([studentId], map: "idx_placement_student")
+  @@index([teacherId], map: "idx_placement_teacher")
+  @@index([termId], map: "idx_placement_term")
+  @@index([tutorId], map: "idx_placement_tutor")
+}
+
+model EvaluationDetail {
+  id                     String    @id @default(cuid())
+  placementId            String
+  termId                 String
+  evaluationPeriod       Int
+  evaluationDate         DateTime  @default(now())
+  evaluationType         String    @default("regular")
+  evaluatedBy            String
+  evaluationDimensions   Json      @default("{\"social\": {\"score\": 0, \"weight\": 0.2, \"observations\": \"\"}, \"academic\": {\"score\": 0, \"weight\": 0.4, \"observations\": \"\"}, \"pastoral\": {\"score\": 0, \"weight\": 0.2, \"observations\": \"\"}, \"administrative\": {\"score\": 0, \"weight\": 0.2, \"observations\": \"\"}}")
+  attendanceRecord       Json      @default("{}")
+  totalHours             Int       @default(0)
+  attendedHours          Int       @default(0)
+  sabbathsPlanned        Int       @default(6)
+  sabbathsAttended       Int       @default(0)
+  finalGrade             Float
+  gradeCalculationMethod String    @default("weighted_average")
+  observations           String?
+  evidenceFiles          Json      @default("[]")
+  status                 String    @default("draft")
+  createdBy              String
+  createdAt              DateTime  @default(now())
+  updatedBy              String?
+  updatedAt              DateTime  @updatedAt
+  metadata               Json      @default("{}")
+  creator                User      @relation("CreatedEvaluationDetails", fields: [createdBy], references: [id])
+  evaluator              User      @relation("EvaluatorDetails", fields: [evaluatedBy], references: [id])
+  placement              Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  term                   Term      @relation(fields: [termId], references: [id])
+  updater                User?     @relation("UpdatedEvaluationDetails", fields: [updatedBy], references: [id])
+
+  @@unique([placementId, evaluationPeriod])
+  @@index([createdAt], map: "idx_evaluationdetail_created_at")
+  @@index([evaluatedBy], map: "idx_evaluationdetail_evaluator")
+  @@index([finalGrade], map: "idx_evaluationdetail_final_grade")
+  @@index([status], map: "idx_evaluationdetail_status")
+  @@index([termId, evaluationPeriod], map: "idx_evaluationdetail_term_period")
+}
+
+model SocialProjection {
+  id                   String                        @id @default(cuid())
+  code                 String                        @unique
+  title                String
+  description          String
+  activityType         String
+  category             String
+  startDate            DateTime
+  endDate              DateTime
+  registrationDeadline DateTime?
+  location             String
+  address              String?
+  city                 String
+  department           String
+  coordinates          Json?
+  organizerId          String
+  organizingUnit       String
+  collaborators        Json                          @default("[]")
+  targetAudience       String
+  maxParticipants      Int?
+  minParticipants      Int                           @default(1)
+  currentParticipants  Int                           @default(0)
+  budget               Float                         @default(0.00)
+  resources            Json                          @default("{}")
+  sponsors             Json                          @default("[]")
+  status               String                        @default("planning")
+  objectives           String[]
+  achievements         String[]
+  beneficiaries        Int                           @default(0)
+  impactMetrics        Json                          @default("{}")
+  evaluationCriteria   Json                          @default("{}")
+  overallRating        Float?
+  feedback             String?
+  evidenceFiles        Json                          @default("[]")
+  photos               Json                          @default("[]")
+  reports              Json                          @default("[]")
+  createdBy            String
+  createdAt            DateTime                      @default(now())
+  updatedBy            String?
+  updatedAt            DateTime                      @updatedAt
+  metadata             Json                          @default("{}")
+  placements           PlacementSocialProjection[]
+  creator              User                          @relation("CreatedProjections", fields: [createdBy], references: [id])
+  organizer            User                          @relation("OrganizedProjections", fields: [organizerId], references: [id])
+  updater              User?                         @relation("UpdatedProjections", fields: [updatedBy], references: [id])
+  participants         SocialProjectionParticipant[]
+
+  @@index([activityType], map: "idx_socialprojection_activity_type")
+  @@index([city], map: "idx_socialprojection_city")
+  @@index([startDate, endDate], map: "idx_socialprojection_dates")
+  @@index([organizerId], map: "idx_socialprojection_organizer")
+  @@index([status], map: "idx_socialprojection_status")
+  @@index([targetAudience], map: "idx_socialprojection_target_audience")
+}
+
+model SocialProjectionParticipant {
+  id                   String           @id @default(cuid())
+  projectionId         String
+  participantId        String?
+  participantType      String
+  externalName         String?
+  externalEmail        String?
+  externalPhone        String?
+  externalOrganization String?
+  role                 String
+  registrationDate     DateTime         @default(now())
+  attendanceStatus     String           @default("registered")
+  participationHours   Float            @default(0.00)
+  participationGrade   Float?
+  certificate          Boolean          @default(false)
+  certificateCode      String?
+  createdBy            String
+  createdAt            DateTime         @default(now())
+  updatedBy            String?
+  updatedAt            DateTime         @updatedAt
+  metadata             Json             @default("{}")
+  creator              User             @relation("CreatedParticipants", fields: [createdBy], references: [id])
+  participant          User?            @relation("ParticipantProjections", fields: [participantId], references: [id])
+  projection           SocialProjection @relation(fields: [projectionId], references: [id], onDelete: Cascade)
+  updater              User?            @relation("UpdatedParticipants", fields: [updatedBy], references: [id])
+
+  @@index([registrationDate], map: "idx_projection_participant_registration")
+  @@index([attendanceStatus], map: "idx_projection_participant_status")
+  @@index([participantType], map: "idx_projection_participant_type")
+}
+
+model PlacementSocialProjection {
+  id           String           @id @default(cuid())
+  placementId  String
+  projectionId String
+  isRequired   Boolean          @default(false)
+  weight       Float            @default(0.00)
+  createdBy    String
+  createdAt    DateTime         @default(now())
+  creator      User             @relation("CreatedPlacementProjections", fields: [createdBy], references: [id])
+  placement    Placement        @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  projection   SocialProjection @relation(fields: [projectionId], references: [id], onDelete: Cascade)
+
+  @@unique([placementId, projectionId])
+}
+
+model SniesReport {
+  id                  String            @id @default(cuid())
+  reportCode          String            @unique
+  reportType          String
+  reportSubtype       String?
+  reportVersion       String            @default("1.0")
+  reportPeriod        String
+  academicYear        Int
+  academicPeriod      Int?
+  startDate           DateTime
+  endDate             DateTime
+  programIds          String[]
+  centerIds           String[]
+  termIds             String[]
+  title               String
+  description         String?
+  methodology         String?
+  qualityIndicators   Json              @default("{}")
+  statisticalData     Json              @default("{}")
+  aggregatedMetrics   Json              @default("{}")
+  sourceDataSummary   Json              @default("{}")
+  dataQualityMetrics  Json              @default("{}")
+  status              String            @default("draft")
+  processingStarted   DateTime?
+  processingCompleted DateTime?
+  validationResults   Json              @default("{}")
+  validationErrors    String[]
+  validationWarnings  String[]
+  exportFormats       String[]
+  exportedFiles       Json              @default("[]")
+  approvedBy          String?
+  approvedAt          DateTime?
+  publishedBy         String?
+  publishedAt         DateTime?
+  generatedBy         String
+  createdAt           DateTime          @default(now())
+  updatedBy           String?
+  updatedAt           DateTime          @updatedAt
+  metadata            Json              @default("{}")
+  approver            User?             @relation("ApprovedReports", fields: [approvedBy], references: [id])
+  generator           User              @relation("GeneratedReports", fields: [generatedBy], references: [id])
+  publisher           User?             @relation("PublishedReports", fields: [publishedBy], references: [id])
+  updater             User?             @relation("UpdatedReports", fields: [updatedBy], references: [id])
+  lines               SniesReportLine[]
+
+  @@index([startDate, endDate], map: "idx_sniesreport_dates")
+  @@index([generatedBy], map: "idx_sniesreport_generator")
+  @@index([academicYear, academicPeriod], map: "idx_sniesreport_period")
+  @@index([status], map: "idx_sniesreport_status")
+  @@index([reportType], map: "idx_sniesreport_type")
+}
+
+model SniesReportLine {
+  id                String            @id @default(cuid())
+  reportId          String
+  lineType          String
+  lineCategory      String
+  programId         String?
+  centerId          String?
+  termId            String?
+  studentId         String?
+  placementId       String?
+  lineData          Json              @default("{}")
+  calculatedMetrics Json              @default("{}")
+  sortOrder         Int               @default(0)
+  groupKey          String?
+  parentLineId      String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  parentLine        SniesReportLine?  @relation("ParentChildLines", fields: [parentLineId], references: [id])
+  childLines        SniesReportLine[] @relation("ParentChildLines")
+  report            SniesReport       @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([lineCategory], map: "idx_sniesreportline_category")
+  @@index([groupKey], map: "idx_sniesreportline_group")
+  @@index([reportId, sortOrder], map: "idx_sniesreportline_sort")
+  @@index([lineType], map: "idx_sniesreportline_type")
+}
+
+enum PracticeStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum AssignmentStatus {
+  ACTIVO
+  TRASLADADO
+  FINALIZADO
+}
+
+enum EvidenceStatus {
+  PENDIENTE
+  APROBADA
+  RECHAZADA
+}
+
+enum PlacementStatus {
+  ACTIVE
+  TRANSFERRED
+  COMPLETED
+  CANCELLED
 }

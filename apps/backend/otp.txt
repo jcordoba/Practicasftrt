@@ -1,0 +1,3 @@
+PS E:\Proyectos\Practicasftrt\apps\backend> docker exec -it practicasftrt-postgres-1 psql -U postgres -d practicasftr
+
+SELECT * FROM "OtpCode" ORDER BY "createdAt" DESC LIMIT 5;

@@ -1,28 +1,53 @@
-import { IsString, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsUUID, IsDateString, IsEnum, IsInt, Min } from 'class-validator';
+import { PracticeStatus } from '@prisma/client';
 
 export class CreatePracticeDto {
-  @IsString()
-  name: string = '';
-
-  @IsString()
-  @IsOptional()
-  description?: string;
+  @IsUUID()
+  studentId: string = '';
 
   @IsUUID()
+  tutorId: string = '';
+
+  @IsUUID()
+  teacherId: string = '';
+
+  @IsString()
+  institution: string = '';
+
+  @IsDateString()
+  startDate: Date = new Date();
+
+  @IsDateString()
+  endDate: Date = new Date();
+
+  @IsEnum(PracticeStatus)
   @IsOptional()
-  programId?: string;
+  status?: PracticeStatus;
+
+  @IsInt()
+  @Min(1)
+  hours: number = 0;
 }
 
 export class UpdatePracticeDto {
   @IsString()
   @IsOptional()
-  name?: string;
+  institution?: string;
 
-  @IsString()
+  @IsDateString()
   @IsOptional()
-  description?: string;
+  startDate?: Date;
 
-  @IsUUID()
+  @IsDateString()
   @IsOptional()
-  programId?: string;
+  endDate?: Date;
+
+  @IsEnum(PracticeStatus)
+  @IsOptional()
+  status?: PracticeStatus;
+
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  hours?: number;
 }

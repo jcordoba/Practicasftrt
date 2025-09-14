@@ -1,0 +1,5 @@
+SELECT * FROM "OtpCode" ORDER BY "createdAt" DESC LIMIT 5;
+
+javierf.cordobap@unac.edu.co
+
+admin123

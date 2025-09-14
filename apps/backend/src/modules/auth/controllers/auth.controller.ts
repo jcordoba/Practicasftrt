@@ -10,17 +10,23 @@ const authService = new AuthService();
 export const loginLocal = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({ message: 'Email y contraseña son requeridos' });
     }
-    
-    const user = await authService.validateUser(email, password);
-    
-    if (!user) {
+
+    const user = await authService.validateUser(email);
+
+    if (!user || !user.password) {
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
-    
+
+    const isValidPassword = await authService.validatePassword(password, user.password);
+
+    if (!isValidPassword) {
+      return res.status(401).json({ message: 'Credenciales inválidas' });
+    }
+
     const loginResponse = await authService.login(user);
     res.json(loginResponse);
   } catch (error: unknown) {
@@ -40,11 +46,10 @@ export const googleCallback = async (req: Request, res: Response) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Autenticación con Google falló' });
     }
-    
+
     const loginResponse = await authService.login(req.user as any);
-    
-    // Redirigir al frontend con el token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+
     res.redirect(`${frontendUrl}/auth/callback?token=${loginResponse.access_token}`);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
@@ -56,17 +61,17 @@ export const googleCallback = async (req: Request, res: Response) => {
 export const verifyToken = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
-    
+
     if (!token) {
       return res.status(401).json({ message: 'Token no proporcionado' });
     }
-    
+
     const user = await authService.verifyToken(token);
-    
+
     if (!user) {
       return res.status(401).json({ message: 'Token inválido' });
     }
-    
+
     res.json({ valid: true, user });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
@@ -77,13 +82,12 @@ export const verifyToken = async (req: Request, res: Response) => {
 // Obtener perfil del usuario autenticado
 export const getProfile = async (req: Request, res: Response) => {
   try {
-    // req.user viene del JWT guard
     const user = req.user;
-    
+
     if (!user) {
       return res.status(401).json({ message: 'Usuario no autenticado' });
     }
-    
+
     res.json(user);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
@@ -91,7 +95,7 @@ export const getProfile = async (req: Request, res: Response) => {
   }
 };
 
-// Logout (invalidar token del lado del cliente)
-export const logout = (req: Request, res: Response) => {
+// Logout
+export const logout = (_req: Request, res: Response) => {
   res.json({ message: 'Logout exitoso. Elimina el token del lado del cliente.' });
 };
