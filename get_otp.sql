@@ -1,0 +1,1 @@
+SELECT code FROM "OtpCode" WHERE email = 'admin@sion.com' AND used = false ORDER BY "createdAt" DESC LIMIT 1;

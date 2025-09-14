@@ -32,7 +32,8 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../../packages/shared/*"]
+      "@shared/*": ["../../packages/shared/*"],
+      "@prisma-client": ["./src/generated/prisma"]
     },
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,                                /* Specify what module code is generated. */
@@ -119,5 +120,8 @@
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
-  "exclude": ["prisma/**/*", "vitest.setup.ts"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": ["vitest.setup.ts", "src/tests", "prisma/**/*.ts"]
 }

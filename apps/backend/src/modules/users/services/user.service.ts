@@ -28,14 +28,11 @@ export class UserService {
     if (existingUser) {
       throw new BadRequestError('El usuario ya existe');
     }
-    if (createUserDto.programId) {
-      // TODO: Validar existencia real del programa en base de datos
-    }
     return userRepository.create(createUserDto as any);
   }
 
-  async findAll(filter?: { programId?: string }): Promise<User[]> {
-    return userRepository.findAll(filter);
+  async findAll(): Promise<User[]> {
+    return userRepository.findAll();
   }
 
   async findOne(id: string): Promise<User | null> {
@@ -47,15 +44,26 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    if (updateUserDto.programId) {
-      // TODO: Validar existencia real del programa en base de datos
-    }
     return userRepository.update(id, updateUserDto);
   }
 
   async assignRoles(userId: string, assignRolesDto: AssignRolesDto): Promise<void> {
-    // TODO: Validar que los roleIds existan
     const { roleIds } = assignRolesDto;
+
+    // Validar que el usuario exista
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new BadRequestError('Usuario no encontrado');
+    }
+
+    // Validar que todos los roleIds existan
+    const existingRoles = await prisma.role.findMany({
+      where: { id: { in: roleIds } }
+    });
+    
+    if (existingRoles.length !== roleIds.length) {
+      throw new BadRequestError('Uno o más roles no existen');
+    }
 
     // Primero, eliminar los roles actuales del usuario para evitar duplicados
     await prisma.userRole.deleteMany({ where: { userId } });
@@ -67,6 +75,59 @@ export class UserService {
     }));
 
     await prisma.userRole.createMany({ data: userRoleData });
+  }
+
+  async getUserRoles(userId: string): Promise<any[]> {
+    const userWithRoles = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        roles: {
+          include: {
+            role: {
+              include: {
+                permissions: {
+                  include: {
+                    permission: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!userWithRoles) {
+      throw new BadRequestError('Usuario no encontrado');
+    }
+
+    return userWithRoles.roles.map(userRole => userRole.role);
+  }
+
+  async getUserPermissions(userId: string): Promise<any[]> {
+    const userRoles = await this.getUserRoles(userId);
+    const permissions = new Map();
+
+    userRoles.forEach(role => {
+      role.permissions?.forEach((rolePermission: any) => {
+        const permission = rolePermission.permission;
+        if (permission && permission.estado === 'ACTIVO') {
+          permissions.set(permission.id, permission);
+        }
+      });
+    });
+
+    return Array.from(permissions.values());
+  }
+
+  async hasPermission(userId: string, permissionName: string): Promise<boolean> {
+    const permissions = await this.getUserPermissions(userId);
+    return permissions.some(permission => permission.nombre === permissionName);
+  }
+
+  async hasRole(userId: string, roleName: string): Promise<boolean> {
+    const roles = await this.getUserRoles(userId);
+    return roles.some(role => role.nombre === roleName);
   }
 
   async activateDeactivate(id: string, isActive: boolean): Promise<User> {

@@ -23,12 +23,13 @@ export const jwtMiddleware: RequestHandler = async (req: Request, res: Response,
 
     const decoded = jwt.verify(token, JWT_SECRET) as any;
     
-    if (!decoded || !decoded.id) {
+    if (!decoded || (!decoded.sub && !decoded.id)) {
       return res.status(401).json({ message: 'Token inválido' });
     }
 
     // Obtener usuario completo con roles
-    const user = await userService.findOne(decoded.id);
+    const userId = decoded.sub || decoded.id;
+    const user = await userService.findOne(userId);
     
     if (!user) {
       return res.status(401).json({ message: 'Usuario no encontrado' });
@@ -38,6 +39,7 @@ export const jwtMiddleware: RequestHandler = async (req: Request, res: Response,
       return res.status(401).json({ message: 'Usuario inactivo' });
     }
 
+    console.log('JWT Middleware - User found:', JSON.stringify(user, null, 2));
     authReq.user = user;
     next();
   } catch (error) {

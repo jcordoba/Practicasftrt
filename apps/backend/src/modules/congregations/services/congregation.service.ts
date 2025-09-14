@@ -1,58 +1,156 @@
-import { Congregation } from '../entities/congregation.entity';
+import prisma from '../../../prisma';
 import { CreateCongregationDto, UpdateCongregationDto } from '../dtos/congregation.dto';
 
 export class CongregationService {
-  private congregations: Congregation[] = [];
-
-  create(dto: CreateCongregationDto): Congregation {
+  async create(dto: CreateCongregationDto) {
     if (!dto.nombre) throw new Error('El nombre es obligatorio');
     if (!dto.districtId) throw new Error('El districtId es obligatorio');
     if (typeof dto.esCentroPractica !== 'boolean') throw new Error('El campo esCentroPractica es obligatorio');
-    if (this.congregations.some(c => c.nombre.toLowerCase() === dto.nombre.toLowerCase() && c.districtId === dto.districtId)) {
+    
+    // Verificar si el distrito existe
+    const district = await prisma.district.findUnique({
+      where: { id: dto.districtId }
+    });
+    
+    if (!district) {
+      throw new Error('El distrito especificado no existe');
+    }
+    
+    // Verificar si ya existe una congregación con ese nombre en el distrito
+    const existingCongregation = await prisma.congregation.findFirst({
+      where: {
+        nombre: {
+          equals: dto.nombre,
+          mode: 'insensitive'
+        },
+        districtId: dto.districtId
+      }
+    });
+    
+    if (existingCongregation) {
       throw new Error('Ya existe una congregación con ese nombre en el distrito seleccionado');
     }
-    const now = new Date();
-    const congregation: Congregation = {
-      id: (Math.random() * 1e18).toString(36),
-      nombre: dto.nombre,
-      districtId: dto.districtId,
-      esCentroPractica: dto.esCentroPractica,
-      estado: 'ACTIVO',
-      fecha_creacion: now,
-      fecha_actualizacion: now
-    };
-    this.congregations.push(congregation);
-    return congregation;
+    
+    return await prisma.congregation.create({
+      data: {
+        nombre: dto.nombre,
+        districtId: dto.districtId,
+        esCentroPractica: dto.esCentroPractica
+      },
+      include: {
+        district: {
+          include: {
+            association: {
+              include: {
+                union: true
+              }
+            }
+          }
+        }
+      }
+    });
   }
 
-  update(id: string, dto: UpdateCongregationDto): Congregation {
-    const congregation = this.congregations.find(c => c.id === id && c.estado === 'ACTIVO');
-    if (!congregation) throw new Error('Congregación no encontrada');
+  async update(id: string, dto: UpdateCongregationDto) {
+    // Verificar si la congregación existe
+    const existingCongregation = await prisma.congregation.findUnique({
+      where: { id }
+    });
+    
+    if (!existingCongregation) {
+      throw new Error('Congregación no encontrada');
+    }
+    
+    // Verificar nombre duplicado si se está actualizando
     if (dto.nombre) {
-      if (this.congregations.some(c => c.nombre.toLowerCase() === dto.nombre!.toLowerCase() && c.districtId === congregation.districtId && c.id !== id)) {
+      const duplicateCongregation = await prisma.congregation.findFirst({
+        where: {
+          nombre: {
+            equals: dto.nombre,
+            mode: 'insensitive'
+          },
+          districtId: existingCongregation.districtId,
+          id: {
+            not: id
+          }
+        }
+      });
+      
+      if (duplicateCongregation) {
         throw new Error('Ya existe una congregación con ese nombre en el distrito seleccionado');
       }
-      congregation.nombre = dto.nombre;
     }
-    if (typeof dto.esCentroPractica === 'boolean') congregation.esCentroPractica = dto.esCentroPractica;
-    if (dto.estado) congregation.estado = dto.estado;
-    congregation.fecha_actualizacion = new Date();
-    return congregation;
+    
+    return await prisma.congregation.update({
+      where: { id },
+      data: {
+        ...(dto.nombre && { nombre: dto.nombre }),
+        ...(typeof dto.esCentroPractica === 'boolean' && { esCentroPractica: dto.esCentroPractica })
+      },
+      include: {
+        district: {
+          include: {
+            association: {
+              include: {
+                union: true
+              }
+            }
+          }
+        }
+      }
+    });
   }
 
-  softDelete(id: string): boolean {
-    const congregation = this.congregations.find(c => c.id === id && c.estado === 'ACTIVO');
-    if (!congregation) throw new Error('Congregación no encontrada');
-    congregation.estado = 'INACTIVO';
-    congregation.fecha_actualizacion = new Date();
-    return true;
+  async softDelete(id: string) {
+    const existingCongregation = await prisma.congregation.findUnique({
+      where: { id }
+    });
+    
+    if (!existingCongregation) {
+      throw new Error('Congregación no encontrada');
+    }
+    
+    return await prisma.congregation.delete({
+      where: { id }
+    });
   }
 
-  findAll(districtId?: string): Congregation[] {
-    return this.congregations.filter(c => c.estado === 'ACTIVO' && (!districtId || c.districtId === districtId));
+  async findAll(districtId?: string) {
+    return await prisma.congregation.findMany({
+      where: {
+        ...(districtId && { districtId })
+      },
+      include: {
+        district: {
+          include: {
+            association: {
+              include: {
+                union: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        fecha_creacion: 'desc'
+      }
+    });
   }
 
-  findById(id: string): Congregation | undefined {
-    return this.congregations.find(c => c.id === id && c.estado === 'ACTIVO');
+  async findById(id: string) {
+    return await prisma.congregation.findUnique({
+      where: { id },
+      include: {
+        district: {
+          include: {
+            association: {
+              include: {
+                union: true
+              }
+            }
+          }
+        }
+      }
+    });
   }
 }

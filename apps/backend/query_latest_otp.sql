@@ -1,0 +1,1 @@
+SELECT * FROM "OtpCode" WHERE email = 'admin@sion.com' ORDER BY "createdAt" DESC LIMIT 1;

@@ -11,8 +11,7 @@ const userService = new UserService();
 // [ADMIN] Obtener todos los usuarios
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const filter = { programId: req.query.programId as string };
-    const users = await userService.findAll(filter);
+    const users = await userService.findAll();
     res.json(users);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
@@ -38,9 +37,6 @@ export const getMyProfile = async (req: Request, res: Response) => {
 export const createUser = async (req: Request, res: Response) => {
   try {
     const createUserDto: CreateUserDto = req.body;
-    if (createUserDto.programId) {
-      // TODO: Validar existencia real del programa en base de datos
-    }
     const user = await userService.create(createUserDto);
     res.status(201).json(user);
   } catch (error: unknown) {
@@ -54,9 +50,6 @@ export const updateUser = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     const updateUserDto: UpdateUserDto = req.body;
-    if (updateUserDto.programId) {
-      // TODO: Validar existencia real del programa en base de datos
-    }
     const user = await userService.update(id, updateUserDto);
     res.json(user);
   } catch (error: unknown) {
@@ -72,6 +65,80 @@ export const assignRoles = async (req: Request, res: Response) => {
     const assignRolesDto: AssignRolesDto = req.body;
     await userService.assignRoles(id, assignRolesDto);
     res.json({ message: 'Roles asignados exitosamente' });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
+    res.status(400).json({ message: errorMessage });
+  }
+};
+
+// [AUTHENTICATED] Obtener roles del usuario
+export const getUserRoles = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const roles = await userService.getUserRoles(id);
+    res.json(roles);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
+    res.status(400).json({ message: errorMessage });
+  }
+};
+
+// [AUTHENTICATED] Obtener permisos del usuario
+export const getUserPermissions = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const permissions = await userService.getUserPermissions(id);
+    res.json(permissions);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
+    res.status(400).json({ message: errorMessage });
+  }
+};
+
+// [AUTHENTICATED] Obtener mis roles
+export const getMyRoles = async (req: Request, res: Response) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const roles = await userService.getUserRoles(authReq.user!.id);
+    res.json(roles);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
+    res.status(400).json({ message: errorMessage });
+  }
+};
+
+// [AUTHENTICATED] Obtener mis permisos
+export const getMyPermissions = async (req: Request, res: Response) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const permissions = await userService.getUserPermissions(authReq.user!.id);
+    res.json(permissions);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
+    res.status(400).json({ message: errorMessage });
+  }
+};
+
+// [AUTHENTICATED] Verificar si tengo un permiso específico
+export const checkMyPermission = async (req: Request, res: Response) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { permission } = req.params;
+    const hasPermission = await userService.hasPermission(authReq.user!.id, permission);
+    res.json({ hasPermission });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
+    res.status(400).json({ message: errorMessage });
+  }
+};
+
+// [AUTHENTICATED] Verificar si tengo un rol específico
+export const checkMyRole = async (req: Request, res: Response) => {
+  try {
+    const authReq = req as AuthenticatedRequest;
+    const { role } = req.params;
+    const hasRole = await userService.hasRole(authReq.user!.id, role);
+    res.json({ hasRole });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
     res.status(400).json({ message: errorMessage });

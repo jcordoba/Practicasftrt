@@ -37,8 +37,7 @@ passport.use(new Strategy({
         const createUserDto: CreateUserDto = {
           email,
           name: name?.givenName && name?.familyName ? `${name.givenName} ${name.familyName}` : email.split('@')[0],
-          password: '' as string | null,
-          programId: undefined as string | undefined
+          password: '' as string | null
         };
         user = await userService.create(createUserDto);
         

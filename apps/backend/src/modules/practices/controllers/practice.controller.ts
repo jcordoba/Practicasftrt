@@ -32,7 +32,7 @@ export class PracticeController {
    * @swagger
    * /api/practices:
    *   get:
-   *     summary: Listar prácticas (opcional filtro por programId)
+   *     summary: Listar prácticas con filtros opcionales
    *     tags:
    *       - Prácticas
    *     parameters:
@@ -41,16 +41,42 @@ export class PracticeController {
    *         schema:
    *           type: string
    *         description: ID del programa académico
+   *       - in: query
+   *         name: studentId
+   *         schema:
+   *           type: string
+   *         description: ID del estudiante
+   *       - in: query
+   *         name: tutorId
+   *         schema:
+   *           type: string
+   *         description: ID del tutor
+   *       - in: query
+   *         name: teacherId
+   *         schema:
+   *           type: string
+   *         description: ID del docente
+   *       - in: query
+   *         name: status
+   *         schema:
+   *           type: string
+   *           enum: [PENDING, IN_PROGRESS, COMPLETED, CANCELLED]
+   *         description: Estado de la práctica
    *     responses:
    *       200:
    *         description: Lista de prácticas
    *         content:
    *           application/json:
-   *             example: [{ "id": "pr1", "name": "Práctica 1", "programId": "progA" }]
+   *             example: [{ "id": "pr1", "name": "Práctica 1", "programId": "progA", "status": "PENDING" }]
    */
   async findAll(req: Request, res: Response) {
-    const { programId } = req.query;
-    const practices = await this.practiceService.findAll({ programId: programId as string });
+    const { studentId, tutorId, teacherId, status } = req.query;
+    const practices = await this.practiceService.findAll({ 
+      studentId: studentId as string,
+      tutorId: tutorId as string,
+      teacherId: teacherId as string,
+      status: status as any
+    });
     res.json(practices);
   }
 

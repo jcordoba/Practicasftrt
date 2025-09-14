@@ -13,7 +13,7 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('debería ejecutar la validación de usuario', async () => {
-      const result = await authService.validateUser('test@unac.edu.co', 'password123');
+      const result = await authService.validateUser('test@unac.edu.co');
       expect(result).toBeDefined();
     });
   });

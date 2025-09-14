@@ -1,53 +1,102 @@
-import { Union } from '../entities/union.entity';
+import prisma from '../../../prisma';
 import { CreateUnionDto, UpdateUnionDto } from '../dtos/union.dto';
 
 export class UnionService {
-  private unions: Union[] = [];
-
-  create(dto: CreateUnionDto): Union {
+  async create(dto: CreateUnionDto) {
     if (!dto.nombre) throw new Error('El nombre es obligatorio');
-    if (this.unions.some(u => u.nombre.toLowerCase() === dto.nombre.toLowerCase())) {
+    
+    // Verificar si ya existe una unión con ese nombre
+    const existingUnion = await prisma.union.findFirst({
+      where: {
+        nombre: {
+          equals: dto.nombre,
+          mode: 'insensitive'
+        }
+      }
+    });
+    
+    if (existingUnion) {
       throw new Error('Ya existe una unión con ese nombre');
     }
-    const now = new Date();
-    const union = new Union();
-    union.id = (Math.random() * 1e18).toString(36);
-    union.nombre = dto.nombre;
-    union.estado = 'ACTIVO';
-    union.fecha_creacion = now;
-    union.fecha_actualizacion = now;
-    this.unions.push(union);
-    return union;
+    
+    return await prisma.union.create({
+      data: {
+        nombre: dto.nombre
+      }
+    });
   }
 
-  update(id: string, dto: UpdateUnionDto): Union {
-    const union = this.unions.find(u => u.id === id);
-    if (!union) throw new Error('Unión no encontrada');
-    if (dto.nombre && this.unions.some(u => u.nombre.toLowerCase() === dto.nombre!.toLowerCase() && u.id !== id)) {
-      throw new Error('Ya existe una unión con ese nombre');
+  async update(id: string, dto: UpdateUnionDto) {
+    // Verificar si la unión existe
+    const existingUnion = await prisma.union.findUnique({
+      where: { id }
+    });
+    
+    if (!existingUnion) {
+      throw new Error('Unión no encontrada');
     }
-    if (dto.nombre) union.nombre = dto.nombre;
-    if (dto.estado) union.estado = dto.estado as 'ACTIVO' | 'INACTIVO';
-    union.fecha_actualizacion = new Date();
-    return union;
+    
+    // Verificar nombre duplicado si se está actualizando
+    if (dto.nombre) {
+      const duplicateUnion = await prisma.union.findFirst({
+        where: {
+          nombre: {
+            equals: dto.nombre,
+            mode: 'insensitive'
+          },
+          id: {
+            not: id
+          }
+        }
+      });
+      
+      if (duplicateUnion) {
+        throw new Error('Ya existe una unión con ese nombre');
+      }
+    }
+    
+    return await prisma.union.update({
+      where: { id },
+      data: {
+        ...(dto.nombre && { nombre: dto.nombre })
+      }
+    });
   }
 
-  softDelete(id: string): Union {
-    const union = this.unions.find(u => u.id === id);
-    if (!union) throw new Error('Unión no encontrada');
-    union.estado = 'INACTIVO';
-    union.fecha_actualizacion = new Date();
-    return union;
+  async softDelete(id: string) {
+    const existingUnion = await prisma.union.findUnique({
+      where: { id }
+    });
+    
+    if (!existingUnion) {
+      throw new Error('Unión no encontrada');
+    }
+    
+    return await prisma.union.delete({
+      where: { id }
+    });
   }
 
-  findAll({ estado, nombre }: { estado?: 'ACTIVO' | 'INACTIVO'; nombre?: string } = {}): Union[] {
-    return this.unions.filter(u =>
-      (estado ? u.estado === estado : true) &&
-      (nombre ? u.nombre.toLowerCase().includes(nombre.toLowerCase()) : true)
-    );
+  async findAll({ estado, nombre }: { estado?: 'ACTIVO' | 'INACTIVO'; nombre?: string } = {}) {
+    return await prisma.union.findMany({
+      where: {
+        ...(estado && { estado }),
+        ...(nombre && {
+          nombre: {
+            contains: nombre,
+            mode: 'insensitive'
+          }
+        })
+      },
+      orderBy: {
+        fecha_creacion: 'desc'
+      }
+    });
   }
 
-  findById(id: string): Union | undefined {
-    return this.unions.find(u => u.id === id);
+  async findById(id: string) {
+    return await prisma.union.findUnique({
+      where: { id }
+    });
   }
 }

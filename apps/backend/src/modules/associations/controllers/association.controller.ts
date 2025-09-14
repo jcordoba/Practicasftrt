@@ -14,9 +14,9 @@ function authorize(req: Request, res: Response, next: Function) {
 }
 
 // Crear asociación
-router.post('/', authorize, (req: Request, res: Response) => {
+router.post('/', authorize, async (req: Request, res: Response) => {
   try {
-    const association = associationService.create(req.body);
+    const association = await associationService.create(req.body);
     res.status(201).json(association);
   } catch (error: any) {
     res.status(400).json({ message: error.message });
@@ -24,9 +24,9 @@ router.post('/', authorize, (req: Request, res: Response) => {
 });
 
 // Editar asociación
-router.put('/:id', authorize, (req: Request, res: Response) => {
+router.put('/:id', authorize, async (req: Request, res: Response) => {
   try {
-    const association = associationService.update(req.params.id, req.body);
+    const association = await associationService.update(req.params.id, req.body);
     res.json(association);
   } catch (error: any) {
     res.status(400).json({ message: error.message });
@@ -34,9 +34,9 @@ router.put('/:id', authorize, (req: Request, res: Response) => {
 });
 
 // Eliminar (soft delete) asociación
-router.delete('/:id', authorize, (req: Request, res: Response) => {
+router.delete('/:id', authorize, async (req: Request, res: Response) => {
   try {
-    associationService.softDelete(req.params.id);
+    await associationService.softDelete(req.params.id);
     res.json({ success: true });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
@@ -44,17 +44,25 @@ router.delete('/:id', authorize, (req: Request, res: Response) => {
 });
 
 // Consultar todas las asociaciones (opcionalmente por unionId)
-router.get('/', (req: Request, res: Response) => {
-  const { unionId } = req.query;
-  const associations = associationService.findAll(unionId as string | undefined);
-  res.json(associations);
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const { unionId } = req.query;
+    const associations = await associationService.findAll(unionId as string | undefined);
+    res.json(associations);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // Consultar asociación por id
-router.get('/:id', (req: Request, res: Response) => {
-  const association = associationService.findById(req.params.id);
-  if (!association) return res.status(404).json({ message: 'No encontrada' });
-  res.json(association);
+router.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const association = await associationService.findById(req.params.id);
+    if (!association) return res.status(404).json({ message: 'No encontrada' });
+    res.json(association);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 export default router;

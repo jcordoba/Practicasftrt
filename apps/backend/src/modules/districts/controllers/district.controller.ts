@@ -14,9 +14,9 @@ function authorize(req: Request, res: Response, next: Function) {
 }
 
 // Crear distrito
-router.post('/', authorize, (req: Request, res: Response) => {
+router.post('/', authorize, async (req: Request, res: Response) => {
   try {
-    const district = districtService.create(req.body);
+    const district = await districtService.create(req.body);
     res.status(201).json(district);
   } catch (error: any) {
     res.status(400).json({ message: error.message });
@@ -24,9 +24,9 @@ router.post('/', authorize, (req: Request, res: Response) => {
 });
 
 // Editar distrito
-router.put('/:id', authorize, (req: Request, res: Response) => {
+router.put('/:id', authorize, async (req: Request, res: Response) => {
   try {
-    const district = districtService.update(req.params.id, req.body);
+    const district = await districtService.update(req.params.id, req.body);
     res.json(district);
   } catch (error: any) {
     res.status(400).json({ message: error.message });
@@ -34,9 +34,9 @@ router.put('/:id', authorize, (req: Request, res: Response) => {
 });
 
 // Eliminar (soft delete) distrito
-router.delete('/:id', authorize, (req: Request, res: Response) => {
+router.delete('/:id', authorize, async (req: Request, res: Response) => {
   try {
-    districtService.softDelete(req.params.id);
+    await districtService.softDelete(req.params.id);
     res.json({ success: true });
   } catch (error: any) {
     res.status(400).json({ message: error.message });
@@ -44,17 +44,25 @@ router.delete('/:id', authorize, (req: Request, res: Response) => {
 });
 
 // Consultar todos los distritos (opcionalmente por associationId)
-router.get('/', (req: Request, res: Response) => {
-  const { associationId } = req.query;
-  const districts = districtService.findAll(associationId as string | undefined);
-  res.json(districts);
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    const { associationId } = req.query;
+    const districts = await districtService.findAll(associationId as string | undefined);
+    res.json(districts);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // Consultar distrito por id
-router.get('/:id', (req: Request, res: Response) => {
-  const district = districtService.findById(req.params.id);
-  if (!district) return res.status(404).json({ message: 'No encontrado' });
-  res.json(district);
+router.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const district = await districtService.findById(req.params.id);
+    if (!district) return res.status(404).json({ message: 'No encontrado' });
+    res.json(district);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 export default router;

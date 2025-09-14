@@ -14,7 +14,7 @@ describe('RoleService', () => {
       const roleService = new RoleService();
       expect(typeof roleService.getAllRoles).toBe('function');
       expect(typeof roleService.findByName).toBe('function');
-      expect(typeof roleService.findById).toBe('function');
+      expect(typeof roleService.getRoleById).toBe('function');
       expect(typeof roleService.seedRoles).toBe('function');
     });
   });

@@ -8,36 +8,36 @@ describe('AssociationService', () => {
     service = new AssociationService();
   });
 
-  it('debería crear una asociación', () => {
-    const assoc = service.create({ nombre: 'Asociación 1', unionId: 'u1' });
+  it('debería crear una asociación', async () => {
+    const assoc = await service.create({ nombre: 'Asociación 1', unionId: 'u1' });
     expect(assoc).toHaveProperty('id');
     expect(assoc.nombre).toBe('Asociación 1');
     expect(assoc.unionId).toBe('u1');
     expect(assoc.estado).toBe('ACTIVO');
   });
 
-  it('no permite nombres duplicados en la misma unión', () => {
-    service.create({ nombre: 'Asociación 2', unionId: 'u2' });
-    expect(() => service.create({ nombre: 'Asociación 2', unionId: 'u2' })).toThrow();
+  it('no permite nombres duplicados en la misma unión', async () => {
+    await service.create({ nombre: 'Asociación 2', unionId: 'u2' });
+    await expect(service.create({ nombre: 'Asociación 2', unionId: 'u2' })).rejects.toThrow();
   });
 
-  it('debería actualizar una asociación', () => {
-    const assoc = service.create({ nombre: 'Asociación 3', unionId: 'u3' });
-    const updated = service.update(assoc.id, { nombre: 'Asociación 3B' });
+  it('debería actualizar una asociación', async () => {
+    const assoc = await service.create({ nombre: 'Asociación 3', unionId: 'u3' });
+    const updated = await service.update(assoc.id, { nombre: 'Asociación 3B' });
     expect(updated.nombre).toBe('Asociación 3B');
   });
 
-  it('debería inactivar (soft delete) una asociación', () => {
-    const assoc = service.create({ nombre: 'Asociación 4', unionId: 'u4' });
-    const deleted = service.softDelete(assoc.id);
+  it('debería inactivar (soft delete) una asociación', async () => {
+    const assoc = await service.create({ nombre: 'Asociación 4', unionId: 'u4' });
+    const deleted = await service.softDelete(assoc.id);
     expect(deleted).toBe(true);
-    expect(service.findById(assoc.id)).toBeUndefined();
+    expect(await service.findById(assoc.id)).toBeUndefined();
   });
 
-  it('debería filtrar por unionId', () => {
-    service.create({ nombre: 'A1', unionId: 'u5' });
-    service.create({ nombre: 'A2', unionId: 'u6' });
-    const filtered = service.findAll('u5');
+  it('debería filtrar por unionId', async () => {
+    await service.create({ nombre: 'A1', unionId: 'u5' });
+    await service.create({ nombre: 'A2', unionId: 'u6' });
+    const filtered = await service.findAll('u5');
     expect(filtered.length).toBe(1);
     expect(filtered[0].unionId).toBe('u5');
   });

@@ -5,13 +5,34 @@ export class AssignmentService {
   private assignments: Assignment[] = [];
 
   // Asignar manualmente un estudiante a una práctica y centro
-  create(dto: CreateAssignmentDto): Assignment {
-    // Regla: Un estudiante no puede estar asignado a más de un centro en el mismo semestre
-    const yaAsignado = this.assignments.find(a => a.estudiante_id === dto.estudiante_id && a.estado === 'ACTIVO');
-    if (yaAsignado) {
+  async create(dto: CreateAssignmentDto): Promise<Assignment> {
+    // Regla 1: Validar múltiples prácticas del mismo estudiante en el mismo centro
+    // No permitir la misma práctica del mismo estudiante en el mismo centro
+    const mismaPracticaEnMismoCentro = this.assignments.find(a => 
+      a.estudiante_id === dto.estudiante_id && 
+      a.centro_id === dto.centro_id && 
+      a.practica_id === dto.practica_id &&
+      a.estado === 'ACTIVO'
+    );
+    
+    if (mismaPracticaEnMismoCentro) {
+      throw new Error('El estudiante ya está asignado a esta práctica en este centro.');
+    }
+    
+    // Regla 2: Un estudiante no puede estar asignado a más de un centro en el mismo semestre
+    // (solo aplicar si no es el mismo centro)
+    const asignacionesActivasOtroCentro = this.assignments.filter(a => 
+      a.estudiante_id === dto.estudiante_id && 
+      a.centro_id !== dto.centro_id && 
+      a.estado === 'ACTIVO'
+    );
+    
+    if (asignacionesActivasOtroCentro.length > 0) {
       throw new Error('El estudiante ya tiene una asignación activa para este semestre.');
     }
-    // TODO: Validar múltiples prácticas activas en la misma iglesia y pastor
+    
+    // Permitir múltiples prácticas diferentes en el mismo centro
+    console.log(`Permitiendo asignación para estudiante ${dto.estudiante_id} en centro ${dto.centro_id} para práctica ${dto.practica_id}`);
     const now = new Date();
     const assignment: Assignment = {
       id: (Math.random() * 1e18).toString(36),
@@ -26,7 +47,7 @@ export class AssignmentService {
   }
 
   // Actualizar asignación (solo centro, estado o fecha_inicio)
-  update(id: string, dto: UpdateAssignmentDto): Assignment {
+  async update(id: string, dto: UpdateAssignmentDto): Promise<Assignment> {
     const assignment = this.assignments.find(a => a.id === id);
     if (!assignment) throw new Error('Asignación no encontrada');
     if (dto.centro_id) assignment.centro_id = dto.centro_id;
@@ -38,7 +59,7 @@ export class AssignmentService {
   }
 
   // Listar asignaciones por estudiante, estado, o programa
-  findAll(filter?: { estudiante_id?: string; estado?: AssignmentStatus; programId?: string }): Assignment[] {
+  async findAll(filter?: { estudiante_id?: string; estado?: AssignmentStatus; programId?: string }): Promise<Assignment[]> {
     return this.assignments.filter(a =>
       (!filter?.estudiante_id || a.estudiante_id === filter.estudiante_id) &&
       (!filter?.estado || a.estado === filter.estado) &&
@@ -47,7 +68,7 @@ export class AssignmentService {
   }
 
   // Historial completo de un estudiante
-  getHistorial(estudiante_id: string): Assignment[] {
+  async getHistorial(estudiante_id: string): Promise<Assignment[]> {
     return this.assignments.filter(a => a.estudiante_id === estudiante_id);
   }
 }

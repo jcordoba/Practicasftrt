@@ -40,7 +40,7 @@ describe('Auth Controller', () => {
     it('should return a JWT if OTP is valid', async () => {
       req.body = { email: 'test@example.com', code: '123456' };
       const user = { id: '1', email: 'test@example.com' };
-      (OtpService.prototype.validateOtp as vi.Mock).mockResolvedValue(true);
+      (OtpService.prototype.validateOtp as vi.Mock).mockResolvedValue({ valid: true });
       (prisma.user.findUnique as vi.Mock).mockResolvedValue(user);
       (jwt.sign as vi.Mock).mockReturnValue('test_token');
 
