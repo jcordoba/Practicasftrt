@@ -90,7 +90,7 @@ export default function OrganizacionPage() {
       {/* Header */}
       <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <SafeLink href="/dashboard/coordinador" className="text-white hover:text-yellow-400 transition">
+          <SafeLink href="/dashboard/coordinador" className="text-white hover:text-blue-200">
             ← Volver al Dashboard
           </SafeLink>
           <h1 className="text-xl font-bold">SION Prácticas FTR - Organización</h1>

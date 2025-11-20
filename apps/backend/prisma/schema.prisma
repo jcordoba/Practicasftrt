@@ -199,9 +199,11 @@ model Docente {
 
 model Practice {
   id          String           @id @default(uuid())
+  name        String
+  description String
   studentId   String
-  tutorId     String
-  teacherId   String
+  tutorId     String?
+  teacherId   String?
   institution String
   startDate   DateTime
   endDate     DateTime
@@ -212,8 +214,8 @@ model Practice {
   programId   String?
   program     Program?         @relation(fields: [programId], references: [id])
   student     User             @relation("StudentToPractice", fields: [studentId], references: [id])
-  teacher     User             @relation("TeacherToPractice", fields: [teacherId], references: [id])
-  tutor       User             @relation("TutorToPractice", fields: [tutorId], references: [id])
+  teacher     User?            @relation("TeacherToPractice", fields: [teacherId], references: [id])
+  tutor       User?            @relation("TutorToPractice", fields: [tutorId], references: [id])
   reports     PracticeReport[]
 }
 

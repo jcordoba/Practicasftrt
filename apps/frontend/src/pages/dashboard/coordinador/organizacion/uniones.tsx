@@ -157,7 +157,7 @@ export default function UnionesPage() {
       {/* Header */}
       <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <SafeLink href="/dashboard/coordinador/organizacion" className="text-white hover:text-yellow-400 transition">
+          <SafeLink href="/dashboard/coordinador/organizacion" className="text-white hover:text-blue-200">
             ← Volver a Organización
           </SafeLink>
           <h1 className="text-xl font-bold">SION Prácticas FTR - Uniones</h1>
@@ -185,7 +185,7 @@ export default function UnionesPage() {
         <div className="w-full mb-6">
           <button
             onClick={() => setShowCreateForm(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition"
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition"
           >
             + Crear Nueva Unión
           </button>
@@ -193,7 +193,7 @@ export default function UnionesPage() {
 
         {/* Formulario de Creación */}
         {showCreateForm && (
-          <div className="bg-white rounded-lg shadow p-6 w-full mb-6 border-2 border-blue-600">
+          <div className="bg-white rounded-lg shadow p-6 w-full mb-6 border-2 border-grey-600">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium !text-slate-900">Crear Nueva Unión</h3>
               <button
@@ -213,7 +213,7 @@ export default function UnionesPage() {
                   required
                   value={createForm.name}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 !text-black"
                 />
               </div>
               <div>
@@ -222,7 +222,7 @@ export default function UnionesPage() {
                   type="text"
                   value={createForm.description}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 !text-black"
                 />
               </div>
               <div className="md:col-span-2 flex gap-2">

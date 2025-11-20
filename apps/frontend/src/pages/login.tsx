@@ -99,7 +99,7 @@ export default function LoginPage() {
           if (userResponse.ok) {
             const userData = await userResponse.json();
             authLogin(data.token, userData.user);
-            router.push('/dashboard/coordinador');
+            router.push('/dashboard');
           } else {
             setApiError('Error al obtener información del usuario');
           }

@@ -9,8 +9,11 @@
     "coverage": "vitest run --coverage"
   },
   "lint-staged": {
-    "*.{js,ts,json}": [
+    "*.{js,ts}": [
       "eslint --fix",
+      "prettier --write"
+    ],
+    "*.json": [
       "prettier --write"
     ]
   },
@@ -18,6 +21,8 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.11.19",
+    "@typescript-eslint/eslint-plugin": "^8.47.0",
+    "@typescript-eslint/parser": "^8.47.0",
     "@vitest/coverage-v8": "^1.3.1",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",

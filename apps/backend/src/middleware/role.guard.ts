@@ -3,34 +3,26 @@ import { AuthenticatedRequest } from '../modules/auth/middlewares/jwt.middleware
 
 export const roleGuard = (requiredRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    console.log('=== ROLE GUARD CALLED ===');
-    console.log('Request path:', req.path);
-    console.log('Request method:', req.method);
-    
     const authReq = req as AuthenticatedRequest;
     const user = authReq.user;
-    
-    console.log('User object exists:', !!user);
-    console.log('User roles exists:', !!(user && user.roles));
 
     if (!user || !user.roles) {
-      console.log('Access denied: No user or roles');
-      return res.status(403).json({ message: 'Forbidden' });
+      return res.status(403).json({ message: 'Acceso denegado: usuario no autenticado' });
     }
 
-    const userRoles = user.roles.map((userRole: any) => userRole.role.name);
-    console.log('User roles:', userRoles);
-    console.log('Required roles:', requiredRoles);
-    
-    const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
-    console.log('Has required role:', hasRequiredRole);
+    // Extract role names, handling both 'nombre' and 'name' fields
+    const userRoles = user.roles
+      .map((userRole: { role: { nombre?: string; name?: string } }) => {
+        return userRole.role.nombre || userRole.role.name;
+      })
+      .filter(Boolean);
+
+    const hasRequiredRole = requiredRoles.some((role) => userRoles.includes(role));
 
     if (!hasRequiredRole) {
-      console.log('Access denied: Insufficient permissions');
-      return res.status(403).json({ message: 'Forbidden' });
+      return res.status(403).json({ message: 'Acceso denegado: roles insuficientes' });
     }
 
-    console.log('Access granted');
     next();
   };
 };

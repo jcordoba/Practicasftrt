@@ -1,15 +1,23 @@
-import { IsString, IsOptional, IsUUID, IsDateString, IsEnum, IsInt, Min } from 'class-validator';
+import { IsString, IsOptional, IsDateString, IsEnum, IsInt, Min } from 'class-validator';
 import { PracticeStatus } from '@prisma/client';
 
 export class CreatePracticeDto {
-  @IsUUID()
+  @IsString()
+  name: string = '';
+
+  @IsString()
+  description: string = '';
+
+  @IsString()
   studentId: string = '';
 
-  @IsUUID()
-  tutorId: string = '';
+  @IsString()
+  @IsOptional()
+  tutorId?: string;
 
-  @IsUUID()
-  teacherId: string = '';
+  @IsString()
+  @IsOptional()
+  teacherId?: string;
 
   @IsString()
   institution: string = '';
@@ -30,6 +38,14 @@ export class CreatePracticeDto {
 }
 
 export class UpdatePracticeDto {
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
   @IsString()
   @IsOptional()
   institution?: string;

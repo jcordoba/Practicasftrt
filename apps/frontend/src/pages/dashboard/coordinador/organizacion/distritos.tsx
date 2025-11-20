@@ -176,7 +176,7 @@ export default function DistritosPage() {
       {/* Header */}
       <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <SafeLink href="/dashboard/coordinador/organizacion" className="text-white hover:text-yellow-400 transition">
+          <SafeLink href="/dashboard/coordinador/organizacion" className="text-white hover:text-blue-200">
             ← Volver a Organización
           </SafeLink>
           <h1 className="text-xl font-bold">SION Prácticas FTR - Distritos</h1>
@@ -212,7 +212,7 @@ export default function DistritosPage() {
 
         {/* Formulario de Creación */}
         {showCreateForm && (
-          <div className="bg-white rounded-lg shadow p-6 w-full mb-6 border-2 border-green-600">
+          <div className="bg-white rounded-lg shadow p-6 w-full mb-6 border-2 border-grey-600">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium !text-slate-900">Crear Nuevo Distrito</h3>
               <button
@@ -232,7 +232,7 @@ export default function DistritosPage() {
                   required
                   value={createForm.name}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 !text-black"
                 />
               </div>
               <div>
@@ -241,7 +241,7 @@ export default function DistritosPage() {
                   required
                   value={createForm.associationId}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, associationId: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 !text-black"
                 >
                   <option value="">Seleccionar Asociación</option>
                   {associations.map(association => (
@@ -255,7 +255,7 @@ export default function DistritosPage() {
                   type="text"
                   value={createForm.description}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 !text-black"
                 />
               </div>
               <div className="md:col-span-2 flex gap-2">
