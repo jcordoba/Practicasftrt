@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { PracticeController } from '../modules/practices/controllers/practice.controller';
 import { PracticeService } from '../modules/practices/services/practice.service';
 import { PracticeReportService } from '../modules/practices/services/practice-report.service';
-import { jwtMiddleware } from '../modules/auth/middlewares/jwt.middleware';
+import { jwtMiddleware, AuthenticatedRequest } from '../modules/auth/middlewares/jwt.middleware';
 import { rbacMiddleware } from '../modules/auth/middlewares/rbac.guard';
 
 const router = Router();
@@ -80,7 +80,13 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { practiceId } = req.params;
-      const userId = (req as { user: { id: string } }).user.id;
+      const authReq = req as AuthenticatedRequest;
+      const userId = authReq.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: 'Usuario no autenticado' });
+      }
+
       const reportData = {
         practiceId,
         userId,
