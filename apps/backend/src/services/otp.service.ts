@@ -28,7 +28,12 @@ export class OtpService {
     return code;
   }
 
-  public async validateOtp(email: string, code: string): Promise<{ valid: boolean; error?: string }> {
+  public async validateOtp(
+    email: string,
+    code: string,
+  ): Promise<{ valid: boolean; error?: string }> {
+    console.log('🔍 Validando OTP:', { email, code });
+
     // First check if there's an OTP with this email and code (regardless of expiration)
     const otpExists = await prisma.otpCode.findFirst({
       where: {
@@ -38,7 +43,16 @@ export class OtpService {
       },
     });
 
+    console.log('📋 OTP encontrado:', otpExists ? 'Sí' : 'No');
+    if (otpExists) {
+      console.log('   - Email:', otpExists.email);
+      console.log('   - Code:', otpExists.code);
+      console.log('   - Used:', otpExists.used);
+      console.log('   - Expires:', otpExists.expiresAt);
+    }
+
     if (!otpExists) {
+      console.log('❌ OTP no encontrado en la base de datos');
       return { valid: false, error: 'Invalid OTP code' };
     }
 

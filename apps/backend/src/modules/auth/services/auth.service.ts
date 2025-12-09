@@ -42,7 +42,7 @@ export class AuthService {
       roles:
         user.roles?.map((ur) => {
           if (typeof ur === 'object' && ur !== null) {
-            const roleObj = ur as Record<string, unknown>;
+            const roleObj = ur as unknown as Record<string, unknown>;
             const role = roleObj.role as Record<string, unknown> | undefined;
             return (role?.nombre as string) || (roleObj.nombre as string) || 'ESTUDIANTE';
           }
@@ -54,7 +54,7 @@ export class AuthService {
       expiresIn: process.env.JWT_EXPIRES_IN || '24h',
     } as jwt.SignOptions);
 
-    const userObj = user as Record<string, unknown>;
+    const userObj = user as unknown as Record<string, unknown>;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = userObj;
 
