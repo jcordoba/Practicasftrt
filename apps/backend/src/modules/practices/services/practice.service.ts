@@ -145,4 +145,33 @@ export class PracticeService {
       },
     })) as PracticeWithRelations[];
   }
+
+  async getStudentStats(studentId: string): Promise<{
+    totalPractices: number;
+    activePractices: number;
+    completedPractices: number;
+    totalHoursLogged: number;
+    totalHoursRequired: number;
+    totalReports: number;
+    averageHoursPerReport: number;
+  }> {
+    const practices = await this.findByStudent(studentId);
+    const totalReports = practices.reduce((sum, p) => sum + (p.reports?.length || 0), 0);
+    const totalHoursLogged = practices.reduce((sum, p) => {
+      if (!p.reports || !Array.isArray(p.reports)) return sum;
+      return (
+        sum + p.reports.reduce((hrs: number, r: { hours?: number }) => hrs + (r.hours || 0), 0)
+      );
+    }, 0);
+
+    return {
+      totalPractices: practices.length,
+      activePractices: practices.filter((p) => p.status === 'IN_PROGRESS').length,
+      completedPractices: practices.filter((p) => p.status === 'COMPLETED').length,
+      totalHoursLogged,
+      totalHoursRequired: practices.reduce((sum, p) => sum + p.hours, 0),
+      totalReports,
+      averageHoursPerReport: totalReports > 0 ? totalHoursLogged / totalReports : 0,
+    };
+  }
 }

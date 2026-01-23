@@ -15,7 +15,16 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Email y contraseña son requeridos' });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        roles: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    });
 
     if (!user || !user.password) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
@@ -27,11 +36,49 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    console.log('🔐 Generando OTP para:', email);
-    await otpService.generateOtp(email);
-    console.log('✅ OTP generado exitosamente');
+    // Validar que el usuario esté activo antes de generar OTP
+    const isActive = user.estado ? user.estado === 'ACTIVO' : true;
+    if (!isActive) {
+      return res.status(401).json({ error: 'Usuario inactivo' });
+    }
 
-    res.json({ message: 'OTP sent to your email' });
+    // ========== FUNCIONALIDAD OTP ACTIVADA ==========
+    console.log('🔐 Generando OTP para:', email);
+    try {
+      await otpService.generateOtp(email);
+      console.log('✅ OTP generado y enviado exitosamente');
+      res.json({
+        message: 'Código de verificación enviado a tu correo electrónico',
+        email: email,
+      });
+    } catch (error) {
+      console.error('❌ Error al generar/enviar OTP:', error);
+      return res.status(500).json({
+        error: 'Error al enviar el código de verificación. Por favor, intenta de nuevo.',
+      });
+    }
+    // ================================================
+
+    // ========== LOGIN DIRECTO DESACTIVADO (se activa con OTP) ==========
+    // const isActive = user.estado ? user.estado === 'ACTIVO' : true;
+    // if (!isActive) {
+    //   return res.status(401).json({ error: 'Usuario inactivo' });
+    // }
+
+    // const roles = user.roles?.map((ur: any) => ur.role.nombre) || [];
+    // const tokenPayload = {
+    //   sub: user.id,
+    //   id: user.id,
+    //   roles: roles,
+    // };
+
+    // const token = jwt.sign(tokenPayload, JWT_SECRET, {
+    //   expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    // } as jwt.SignOptions);
+
+    // console.log('✅ Login directo exitoso (OTP desactivado temporalmente)');
+    // res.json({ token });
+    // ====================================================================
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
     res.status(500).json({ error: errorMessage });
@@ -90,7 +137,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
 
     const token = jwt.sign(tokenPayload, JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-    });
+    } as jwt.SignOptions);
 
     console.error('✅ Token generado con roles incluidos');
     res.json({ token });
@@ -109,7 +156,7 @@ export const verifyToken = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Token no proporcionado' });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { sub?: number; id?: number };
+    const decoded = jwt.verify(token, JWT_SECRET) as { sub?: string; id?: string };
     const user = await prisma.user.findUnique({
       where: { id: decoded.sub || decoded.id },
       include: {
@@ -129,8 +176,8 @@ export const verifyToken = async (req: Request, res: Response) => {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name ?? user.nombre,
-        roles: user.roles.map((ur) => ur.role.nombre),
+        name: user.nombre,
+        roles: user.roles?.map((ur) => ur.role.nombre) || [],
       },
     });
   } catch {
@@ -185,7 +232,7 @@ export const register = async (req: Request, res: Response) => {
         roles: roles,
       },
       JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as jwt.SignOptions,
     );
 
     res.status(201).json({ token });

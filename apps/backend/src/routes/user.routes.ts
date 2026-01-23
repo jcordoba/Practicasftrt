@@ -49,7 +49,9 @@ const adminOrCoordinator = roleGuard(['COORDINADOR_PRACTICAS', 'ADMIN', 'ADMINIS
 router.get('/', adminOrCoordinator, getAllUsers);
 router.post('/', rbacMiddleware(['ADMINISTRADOR_TECNICO']), createUser);
 router.put('/:id', adminOrCoordinator, updateUser);
+router.patch('/:id', adminOrCoordinator, updateUser);
 router.post('/:id/roles', rbacMiddleware(['ADMINISTRADOR_TECNICO']), assignRoles);
+router.put('/:id/roles', adminOrCoordinator, assignRoles);
 router.patch('/:id/activate', rbacMiddleware(['ADMINISTRADOR_TECNICO']), activateDeactivateUser);
 
 export default router;

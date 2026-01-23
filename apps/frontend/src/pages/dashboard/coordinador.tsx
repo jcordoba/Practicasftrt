@@ -272,7 +272,7 @@ export default function CoordinadorDashboard() {
             Gestión de prácticas
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <ActionCard 
               href="/dashboard/coordinador/practicas"
               title="Gestionar prácticas"
@@ -287,6 +287,14 @@ export default function CoordinadorDashboard() {
               description="Asignar estudiantes a iglesias"
               color="border-green-500 hover:border-green-600"
               icon="👥"
+            />
+            
+            <ActionCard 
+              href="/dashboard/coordinador/validar-reportes"
+              title="Validar reportes"
+              description="Revisar y validar reportes de horas"
+              color="border-teal-500 hover:border-teal-600"
+              icon="✅"
             />
             
             <ActionCard 
@@ -316,15 +324,43 @@ export default function CoordinadorDashboard() {
             Gestión Organizacional
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <ActionCard 
+              href="/dashboard/coordinador/centers"
+              title="Centros de Práctica"
+              description="Gestionar iglesias e instituciones donde se realizan las prácticas"
+              color="border-indigo-500 hover:border-indigo-600"
+              icon="🏛️"
+            />
+            
+            <ActionCard 
+              href="/dashboard/coordinador/terms"
+              title="Términos Académicos"
+              description="Gestionar períodos académicos y semestres de las prácticas"
+              color="border-indigo-500 hover:border-indigo-600"
+              icon="📅"
+            />
+            
             <ActionCard 
               href="/dashboard/coordinador/organizacion"
               title="Jerarquía Organizacional"
               description="Gestionar Uniones, Asociaciones, Distritos y Congregaciones"
               color="border-indigo-500 hover:border-indigo-600"
-              icon="🏛️"
+              icon="🏢"
             />
-            
+          </div>
+        </div>
+
+        {/* Enhanced User Management */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 w-full mb-8">
+          <h2 className="text-2xl font-bold !text-black mb-6 flex items-center">
+            <svg className="w-6 h-6 mr-2 !text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            Gestión de Usuarios
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <ActionCard 
               href="/dashboard/coordinador/usuarios"
               title="Gestión de Usuarios"

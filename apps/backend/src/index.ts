@@ -3,7 +3,6 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 import express from 'express';
-import type { CorsOptions } from 'cors';
 import cors from 'cors';
 declare module 'cors';
 import associationRoutes from './routes/association.routes';
@@ -17,6 +16,9 @@ import districtRoutes from './routes/district.routes';
 import congregationRoutes from './routes/congregation.routes';
 import institutionRoutes from './routes/institution.routes';
 import practiceRoutes from './routes/practice.routes';
+import centerRoutes from './routes/center.routes';
+import termRoutes from './routes/term.routes';
+import placementRoutes from './routes/placement.routes';
 
 const app = express();
 
@@ -26,7 +28,10 @@ app.use(express.json());
 
 // Debug middleware to log all requests
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path} - Headers:`, req.headers.authorization ? 'Bearer token present' : 'No auth header');
+  console.log(
+    `${req.method} ${req.path} - Headers:`,
+    req.headers.authorization ? 'Bearer token present' : 'No auth header',
+  );
   next();
 });
 
@@ -47,6 +52,9 @@ app.use('/api/districts', districtRoutes);
 app.use('/api/congregations', congregationRoutes);
 app.use('/api/institutions', institutionRoutes);
 app.use('/api/practices', practiceRoutes);
+app.use('/api/centers', centerRoutes);
+app.use('/api/terms', termRoutes);
+app.use('/api/placements', placementRoutes);
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
@@ -56,13 +64,15 @@ console.log('- PORT:', PORT);
 console.log('- NODE_ENV:', process.env.NODE_ENV);
 console.log('- DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set');
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server is running on port ${PORT}`);
-  console.log(`🌐 Health check available at http://localhost:${PORT}/api/health`);
-}).on('error', (err) => {
-  console.error('❌ Failed to start server:', err);
-  process.exit(1);
-});
+app
+  .listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Server is running on port ${PORT}`);
+    console.log(`🌐 Health check available at http://localhost:${PORT}/api/health`);
+  })
+  .on('error', (err) => {
+    console.error('❌ Failed to start server:', err);
+    process.exit(1);
+  });
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {

@@ -158,6 +158,30 @@ model Institution {
   esCentroPractica    Boolean  @default(false)
 }
 
+model Center {
+  id                  String        @id @default(cuid())
+  nombre              String
+  tipo                String        // 'congregacion' o 'institucion'
+  congregationId      String?
+  institutionId       String?
+  direccion           String?
+  ciudad              String?
+  telefono            String?
+  correoContacto      String?
+  nombreContacto      String?
+  capacidadMaxima     Int           @default(5)
+  capacidadDisponible Int           @default(5)
+  estado              String        @default("ACTIVO")
+  observaciones       String?
+  fecha_creacion      DateTime      @default(now())
+  fecha_actualizacion DateTime      @updatedAt
+  placements          Placement[]   @relation("CenterPlacements")
+
+  @@index([tipo])
+  @@index([estado])
+  @@index([ciudad])
+}
+
 model OtpCode {
   id        String   @id @default(cuid())
   email     String
@@ -320,6 +344,7 @@ model Placement {
   assignedBy        String
   createdAt         DateTime                    @default(now())
   updatedAt         DateTime                    @updatedAt
+  center            Center                      @relation("CenterPlacements", fields: [centerId], references: [id])
   evaluationDetails EvaluationDetail[]
   program           Program?                    @relation("ProgramPlacements", fields: [programId], references: [id])
   student           User                        @relation("StudentPlacements", fields: [studentId], references: [id])

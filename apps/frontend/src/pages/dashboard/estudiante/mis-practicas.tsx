@@ -231,6 +231,65 @@ export default function MisPracticasEstudiantePage() {
           </div>
         )}
         
+        {/* Resumen Estadístico */}
+        {practices.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full mb-6">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium opacity-90">Total Prácticas</p>
+                  <p className="text-3xl font-bold mt-1">{practices.length}</p>
+                </div>
+                <svg className="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium opacity-90">Activas</p>
+                  <p className="text-3xl font-bold mt-1">
+                    {practices.filter(p => p.status === 'IN_PROGRESS').length}
+                  </p>
+                </div>
+                <svg className="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium opacity-90">Horas Totales</p>
+                  <p className="text-3xl font-bold mt-1">
+                    {practices.reduce((sum, p) => sum + getTotalHours(p.id), 0)}h
+                  </p>
+                </div>
+                <svg className="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium opacity-90">Total Reportes</p>
+                  <p className="text-3xl font-bold mt-1">
+                    {Object.values(reports).reduce((sum, arr) => sum + arr.length, 0)}
+                  </p>
+                </div>
+                <svg className="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div className="bg-white rounded-2xl shadow-lg p-6 w-full">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold !text-black flex items-center">

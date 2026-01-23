@@ -29,6 +29,14 @@ router.post(
   },
 );
 
+router.get('/my/stats', rbacMiddleware(['ESTUDIANTE']), (req: Request, res: Response) => {
+  practiceController.getMyStats(req, res);
+});
+
+router.get('/my', rbacMiddleware(['ESTUDIANTE']), (req: Request, res: Response) => {
+  practiceController.findMy(req, res);
+});
+
 router.get(
   '/',
   rbacMiddleware([

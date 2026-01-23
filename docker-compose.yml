@@ -50,6 +50,12 @@ services:
       - GOOGLE_CLIENT_SECRET=tu_google_client_secret
       - ADMIN_EMAILS=cordobapastor@unac.edu.co
       - FRONTEND_URL=https://practicasftr.singularity.cyou
+      # Configuración SMTP para envío de OTP por email
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_SECURE=false
+      - SMTP_USER=unaca8318@gmail.com
+      - SMTP_PASS=rhat bmti rjvw nmqz
     networks:
       - network_public
     deploy:
