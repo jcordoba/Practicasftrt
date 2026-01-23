@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth, useAuthenticatedFetch } from '../../../contexts/AuthContext';
+import CustomCalendar from '../../../components/CustomCalendar';
 
 interface Practice {
   id: string;
@@ -9,16 +10,16 @@ interface Practice {
   institution: string;
   startDate: string;
   endDate: string;
-  status: 'active' | 'inactive' | 'completed';
-  requiredHours: number;
-  studentId?: string;
-  tutorId?: string;
-  teacherId?: string;
-  studentName?: string;
-  tutorName?: string;
-  teacherName?: string;
-  completedHours?: number;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  hours: number;
+  studentId: string;
+  tutorId?: string | null;
+  teacherId?: string | null;
+  student?: { name: string; email: string };
+  tutor?: { name: string; email: string } | null;
+  teacher?: { name: string; email: string } | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 interface CreatePracticeForm {
@@ -27,7 +28,7 @@ interface CreatePracticeForm {
   institution: string;
   startDate: string;
   endDate: string;
-  requiredHours: number;
+  hours: number;
   studentId: string;
   tutorId: string;
   teacherId: string;
@@ -42,18 +43,22 @@ export default function GestionarPracticas() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingPractice, setEditingPractice] = useState<Practice | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'completed'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'>('all');
   const [createForm, setCreateForm] = useState<CreatePracticeForm>({
     name: '',
     description: '',
     institution: '',
     startDate: '',
     endDate: '',
-    requiredHours: 60,
+    hours: 60,
     studentId: '',
     tutorId: '',
     teacherId: ''
   });
+  const [showStartDateCalendar, setShowStartDateCalendar] = useState(false);
+  const [showEndDateCalendar, setShowEndDateCalendar] = useState(false);
+  const [showEditStartDateCalendar, setShowEditStartDateCalendar] = useState(false);
+  const [showEditEndDateCalendar, setShowEditEndDateCalendar] = useState(false);
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -80,66 +85,15 @@ export default function GestionarPracticas() {
     try {
       setLoading(true);
       
-      // Simular datos por ahora - en el futuro conectar con API real
-      setTimeout(() => {
-        setPractices([
-          {
-            id: '1',
-            name: 'Práctica Pastoral I',
-            description: 'Práctica inicial en ministerio pastoral',
-            institution: 'Iglesia Central',
-            startDate: '2024-01-15',
-            endDate: '2024-06-15',
-            status: 'active',
-            requiredHours: 60,
-            studentId: '1',
-            tutorId: '1',
-            teacherId: '1',
-            studentName: 'Juan Pérez',
-            tutorName: 'Pastor García',
-            teacherName: 'Prof. López',
-            completedHours: 45,
-            createdAt: '2024-01-10T10:00:00Z'
-          },
-          {
-            id: '2',
-            name: 'Práctica Pastoral II',
-            description: 'Práctica avanzada en liderazgo pastoral',
-            institution: 'Iglesia del Valle',
-            startDate: '2024-02-01',
-            endDate: '2024-07-01',
-            status: 'active',
-            requiredHours: 80,
-            studentId: '2',
-            tutorId: '2',
-            teacherId: '2',
-            studentName: 'María García',
-            tutorName: 'Pastor Ruiz',
-            teacherName: 'Prof. Martínez',
-            completedHours: 60,
-            createdAt: '2024-01-25T14:30:00Z'
-          },
-          {
-            id: '3',
-            name: 'Práctica Misionera',
-            description: 'Práctica en trabajo misionero urbano',
-            institution: 'Centro Misionero',
-            startDate: '2023-08-01',
-            endDate: '2023-12-01',
-            status: 'completed',
-            requiredHours: 100,
-            studentId: '3',
-            tutorId: '3',
-            teacherId: '3',
-            studentName: 'Carlos López',
-            tutorName: 'Misionero Silva',
-            teacherName: 'Prof. Hernández',
-            completedHours: 100,
-            createdAt: '2023-07-20T09:15:00Z'
-          }
-        ]);
-        setLoading(false);
-      }, 1000);
+      const response = await authenticatedFetch('/api/practices');
+      
+      if (!response.ok) {
+        throw new Error('Error al cargar prácticas');
+      }
+      
+      const data = await response.json();
+      setPractices(data);
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching practices:', error);
       setLoading(false);
@@ -149,22 +103,56 @@ export default function GestionarPracticas() {
   const handleCreatePractice = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Aquí iría la llamada a la API para crear la práctica
-      const newPractice: Practice = {
-        id: Date.now().toString(),
-        ...createForm,
-        status: 'active',
-        createdAt: new Date().toISOString()
+      const requestBody: any = {
+        name: createForm.name.trim(),
+        description: createForm.description.trim(),
+        institution: createForm.institution.trim(),
+        startDate: new Date(createForm.startDate).toISOString(),
+        endDate: new Date(createForm.endDate).toISOString(),
+        hours: parseInt(String(createForm.hours)),
+        studentId: createForm.studentId.trim()
       };
+
+      // Add optional fields only if provided
+      if (createForm.tutorId?.trim()) {
+        requestBody.tutorId = createForm.tutorId.trim();
+      }
+      if (createForm.teacherId?.trim()) {
+        requestBody.teacherId = createForm.teacherId.trim();
+      }
+
+      // Ensure required fields are not empty
+      if (!requestBody.name || !requestBody.studentId) {
+        throw new Error('Los campos Nombre y Estudiante son obligatorios');
+      }
+
+      console.log('Sending request body:', requestBody);
+
+      const response = await authenticatedFetch('/api/practices', {
+        method: 'POST',
+        body: JSON.stringify(requestBody)
+      });
       
-      setPractices(prev => [newPractice, ...prev]);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText };
+        }
+        throw new Error(errorData.message || `Error ${response.status}: ${errorText}`);
+      }
+      
+      await fetchPractices();
       setCreateForm({
         name: '',
         description: '',
         institution: '',
         startDate: '',
         endDate: '',
-        requiredHours: 60,
+        hours: 60,
         studentId: '',
         tutorId: '',
         teacherId: ''
@@ -173,7 +161,7 @@ export default function GestionarPracticas() {
       alert('Práctica creada exitosamente');
     } catch (error) {
       console.error('Error creating practice:', error);
-      alert('Error al crear la práctica');
+      alert(error instanceof Error ? error.message : 'Error al crear la práctica');
     }
   };
 
@@ -182,19 +170,30 @@ export default function GestionarPracticas() {
     if (!editingPractice) return;
     
     try {
-      // Aquí iría la llamada a la API para actualizar la práctica
-      setPractices(prev => 
-        prev.map(practice => 
-          practice.id === editingPractice.id 
-            ? { ...editingPractice }
-            : practice
-        )
-      );
+      const response = await authenticatedFetch(`/api/practices/${editingPractice.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: editingPractice.name,
+          description: editingPractice.description,
+          institution: editingPractice.institution,
+          startDate: new Date(editingPractice.startDate).toISOString(),
+          endDate: new Date(editingPractice.endDate).toISOString(),
+          hours: editingPractice.hours,
+          status: editingPractice.status
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Error al actualizar la práctica');
+      }
+      
+      await fetchPractices();
       setEditingPractice(null);
       alert('Práctica actualizada exitosamente');
     } catch (error) {
       console.error('Error updating practice:', error);
-      alert('Error al actualizar la práctica');
+      alert(error instanceof Error ? error.message : 'Error al actualizar la práctica');
     }
   };
 
@@ -202,37 +201,47 @@ export default function GestionarPracticas() {
     if (!confirm('¿Estás seguro de que deseas eliminar esta práctica?')) return;
     
     try {
-      // Aquí iría la llamada a la API para eliminar la práctica
-      setPractices(prev => prev.filter(practice => practice.id !== practiceId));
+      const response = await authenticatedFetch(`/api/practices/${practiceId}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al eliminar la práctica');
+      }
+      
+      await fetchPractices();
       alert('Práctica eliminada exitosamente');
     } catch (error) {
       console.error('Error deleting practice:', error);
-      alert('Error al eliminar la práctica');
+      alert(error instanceof Error ? error.message : 'Error al eliminar la práctica');
     }
   };
 
   const filteredPractices = practices.filter(practice => {
-    const matchesSearch = practice.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         practice.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         practice.institution.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = practice.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         practice.institution.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         practice.student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         practice.student?.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || practice.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'inactive': return 'bg-yellow-100 text-yellow-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
+      case 'IN_PROGRESS': return 'bg-green-100 text-green-800';
+      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
+      case 'COMPLETED': return 'bg-blue-100 text-blue-800';
+      case 'CANCELLED': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 !text-slate-800';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'active': return 'Activa';
-      case 'inactive': return 'Inactiva';
-      case 'completed': return 'Completada';
+      case 'IN_PROGRESS': return 'En Progreso';
+      case 'PENDING': return 'Pendiente';
+      case 'COMPLETED': return 'Completada';
+      case 'CANCELLED': return 'Cancelada';
       default: return 'Desconocido';
     }
   };
@@ -291,9 +300,10 @@ export default function GestionarPracticas() {
                 className="border border-gray-300 rounded-md px-3 py-2 text-sm"
               >
                 <option value="all">Todos los estados</option>
-                <option value="active">Activas</option>
-                <option value="inactive">Inactivas</option>
-                <option value="completed">Completadas</option>
+                <option value="PENDING">Pendientes</option>
+                <option value="IN_PROGRESS">En Progreso</option>
+                <option value="COMPLETED">Completadas</option>
+                <option value="CANCELLED">Canceladas</option>
               </select>
             </div>
           </div>
@@ -323,7 +333,7 @@ export default function GestionarPracticas() {
                     Fechas
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium !text-slate-800 uppercase tracking-wider">
-                    Progreso
+                    Horas
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium !text-slate-800 uppercase tracking-wider">
                     Estado
@@ -336,14 +346,13 @@ export default function GestionarPracticas() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredPractices.map((practice) => (
                   <tr key={practice.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="md:col-span-2">
-                        <div className="text-sm font-medium !text-slate-900">{practice.name}</div>
-                        <div className="text-sm !text-slate-800">{practice.description}</div>
-                      </div>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium !text-slate-900">{practice.name}</div>
+                      <div className="text-xs !text-slate-600">{practice.description}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm !text-slate-900">{practice.studentName || 'Sin asignar'}</div>
+                      <div className="text-sm !text-slate-900">{practice.student?.name || 'Sin asignar'}</div>
+                      <div className="text-xs !text-slate-600">{practice.student?.email || ''}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm !text-slate-900">{practice.institution}</div>
@@ -356,15 +365,7 @@ export default function GestionarPracticas() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm !text-slate-900">
-                        {practice.completedHours || 0}/{practice.requiredHours} horas
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full"
-                          style={{ 
-                            width: `${Math.min(((practice.completedHours || 0) / practice.requiredHours) * 100, 100)}%` 
-                          }}
-                        ></div>
+                        {practice.hours} horas requeridas
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -420,54 +421,87 @@ export default function GestionarPracticas() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium !text-slate-800 mb-1">Nombre</label>
+                    <label className="block text-sm font-medium !text-slate-800 mb-1">Nombre de la Práctica *</label>
                     <input
                       type="text"
                       required
                       value={createForm.name}
                       onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      placeholder="Ej: Práctica Pastoral I"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium !text-slate-800 mb-1">Institución</label>
+                    <label className="block text-sm font-medium !text-slate-800 mb-1">Institución *</label>
                     <input
                       type="text"
                       required
                       value={createForm.institution}
                       onChange={(e) => setCreateForm(prev => ({ ...prev, institution: e.target.value }))}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      placeholder="Nombre de la institución"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium !text-slate-800 mb-1">Descripción</label>
+                    <label className="block text-sm font-medium !text-slate-800 mb-1">Descripción *</label>
                     <textarea
                       required
                       value={createForm.description}
                       onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                       rows={3}
+                      placeholder="Descripción detallada de la práctica"
                     />
                   </div>
-                  <div>
+                  <div className="relative">
                     <label className="block text-sm font-medium !text-slate-800 mb-1">Fecha Inicio</label>
                     <input
-                      type="date"
-                      required
-                      value={createForm.startDate}
-                      onChange={(e) => setCreateForm(prev => ({ ...prev, startDate: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      type="text"
+                      readOnly
+                      value={createForm.startDate ? new Date(createForm.startDate).toLocaleDateString('es-ES') : ''}
+                      onClick={() => setShowStartDateCalendar(!showStartDateCalendar)}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer"
+                      placeholder="Seleccionar fecha"
                     />
+                    {showStartDateCalendar && (
+                      <div className="absolute z-10 mt-1">
+                        <CustomCalendar
+                          selectedDate={createForm.startDate ? new Date(createForm.startDate) : null}
+                          onDateChange={(date) => {
+                            setCreateForm(prev => ({ 
+                              ...prev, 
+                              startDate: date ? date.toISOString() : '' 
+                            }));
+                            setShowStartDateCalendar(false);
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <div>
+                  <div className="relative">
                     <label className="block text-sm font-medium !text-slate-800 mb-1">Fecha Fin</label>
                     <input
-                      type="date"
-                      required
-                      value={createForm.endDate}
-                      onChange={(e) => setCreateForm(prev => ({ ...prev, endDate: e.target.value }))}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      type="text"
+                      readOnly
+                      value={createForm.endDate ? new Date(createForm.endDate).toLocaleDateString('es-ES') : ''}
+                      onClick={() => setShowEndDateCalendar(!showEndDateCalendar)}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer"
+                      placeholder="Seleccionar fecha"
                     />
+                    {showEndDateCalendar && (
+                      <div className="absolute z-10 mt-1">
+                        <CustomCalendar
+                          selectedDate={createForm.endDate ? new Date(createForm.endDate) : null}
+                          onDateChange={(date) => {
+                            setCreateForm(prev => ({ 
+                              ...prev, 
+                              endDate: date ? date.toISOString() : '' 
+                            }));
+                            setShowEndDateCalendar(false);
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium !text-slate-800 mb-1">Horas Requeridas</label>
@@ -475,37 +509,40 @@ export default function GestionarPracticas() {
                       type="number"
                       required
                       min="1"
-                      value={createForm.requiredHours}
-                      onChange={(e) => setCreateForm(prev => ({ ...prev, requiredHours: parseInt(e.target.value) }))}
+                      value={createForm.hours}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, hours: parseInt(e.target.value) || 60 }))}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium !text-slate-800 mb-1">ID Estudiante</label>
+                    <label className="block text-sm font-medium !text-slate-800 mb-1">ID/Código Estudiante *</label>
                     <input
                       type="text"
                       required
                       value={createForm.studentId}
                       onChange={(e) => setCreateForm(prev => ({ ...prev, studentId: e.target.value }))}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      placeholder="ID o código del estudiante"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium !text-slate-800 mb-1">ID Tutor</label>
+                    <label className="block text-sm font-medium !text-slate-800 mb-1">ID/Código Tutor (Opcional)</label>
                     <input
                       type="text"
                       value={createForm.tutorId}
                       onChange={(e) => setCreateForm(prev => ({ ...prev, tutorId: e.target.value }))}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      placeholder="ID o código del tutor (dejar vacío si no aplica)"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium !text-slate-800 mb-1">ID Profesor</label>
+                    <label className="block text-sm font-medium !text-slate-800 mb-1">ID/Código Profesor (Opcional)</label>
                     <input
                       type="text"
                       value={createForm.teacherId}
                       onChange={(e) => setCreateForm(prev => ({ ...prev, teacherId: e.target.value }))}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      placeholder="ID o código del profesor (dejar vacío si no aplica)"
                     />
                   </div>
                 </div>
@@ -550,7 +587,7 @@ export default function GestionarPracticas() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium !text-slate-800 mb-1">Nombre</label>
+                    <label className="block text-sm font-medium !text-slate-800 mb-1">Nombre de la Práctica *</label>
                     <input
                       type="text"
                       required
@@ -560,7 +597,7 @@ export default function GestionarPracticas() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium !text-slate-800 mb-1">Institución</label>
+                    <label className="block text-sm font-medium !text-slate-800 mb-1">Institución *</label>
                     <input
                       type="text"
                       required
@@ -570,7 +607,7 @@ export default function GestionarPracticas() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium !text-slate-800 mb-1">Descripción</label>
+                    <label className="block text-sm font-medium !text-slate-800 mb-1">Descripción *</label>
                     <textarea
                       required
                       value={editingPractice.description}
@@ -579,6 +616,54 @@ export default function GestionarPracticas() {
                       rows={3}
                     />
                   </div>
+                  <div className="relative">
+                    <label className="block text-sm font-medium !text-slate-800 mb-1">Fecha Inicio</label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={editingPractice.startDate ? new Date(editingPractice.startDate).toLocaleDateString('es-ES') : ''}
+                      onClick={() => setShowEditStartDateCalendar(!showEditStartDateCalendar)}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer"
+                    />
+                    {showEditStartDateCalendar && (
+                      <div className="absolute z-10 mt-1">
+                        <CustomCalendar
+                          selectedDate={editingPractice.startDate ? new Date(editingPractice.startDate) : null}
+                          onDateChange={(date) => {
+                            setEditingPractice(prev => prev ? { 
+                              ...prev, 
+                              startDate: date ? date.toISOString() : '' 
+                            } : null);
+                            setShowEditStartDateCalendar(false);
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <label className="block text-sm font-medium !text-slate-800 mb-1">Fecha Fin</label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={editingPractice.endDate ? new Date(editingPractice.endDate).toLocaleDateString('es-ES') : ''}
+                      onClick={() => setShowEditEndDateCalendar(!showEditEndDateCalendar)}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer"
+                    />
+                    {showEditEndDateCalendar && (
+                      <div className="absolute z-10 mt-1">
+                        <CustomCalendar
+                          selectedDate={editingPractice.endDate ? new Date(editingPractice.endDate) : null}
+                          onDateChange={(date) => {
+                            setEditingPractice(prev => prev ? { 
+                              ...prev, 
+                              endDate: date ? date.toISOString() : '' 
+                            } : null);
+                            setShowEditEndDateCalendar(false);
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
                   <div>
                     <label className="block text-sm font-medium !text-slate-800 mb-1">Estado</label>
                     <select
@@ -586,9 +671,10 @@ export default function GestionarPracticas() {
                       onChange={(e) => setEditingPractice(prev => prev ? { ...prev, status: e.target.value as any } : null)}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                     >
-                      <option value="active">Activa</option>
-                      <option value="inactive">Inactiva</option>
-                      <option value="completed">Completada</option>
+                      <option value="PENDING">Pendiente</option>
+                      <option value="IN_PROGRESS">En Progreso</option>
+                      <option value="COMPLETED">Completada</option>
+                      <option value="CANCELLED">Cancelada</option>
                     </select>
                   </div>
                   <div>
@@ -597,8 +683,8 @@ export default function GestionarPracticas() {
                       type="number"
                       required
                       min="1"
-                      value={editingPractice.requiredHours}
-                      onChange={(e) => setEditingPractice(prev => prev ? { ...prev, requiredHours: parseInt(e.target.value) } : null)}
+                      value={editingPractice.hours}
+                      onChange={(e) => setEditingPractice(prev => prev ? { ...prev, hours: parseInt(e.target.value) || 60 } : null)}
                       className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                     />
                   </div>

@@ -71,13 +71,53 @@ export class PracticeController {
    */
   async findAll(req: Request, res: Response) {
     const { studentId, tutorId, teacherId, status } = req.query;
-    const practices = await this.practiceService.findAll({ 
+    const practices = await this.practiceService.findAll({
       studentId: studentId as string,
       tutorId: tutorId as string,
       teacherId: teacherId as string,
-      status: status as any
+      status: status as string,
     });
     res.json(practices);
+  }
+
+  /**
+   * Get practices for the authenticated user
+   */
+  async findMy(req: Request, res: Response) {
+    try {
+      const authReq = req as { user?: { id?: string } };
+      const userId = authReq.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: 'Usuario no autenticado' });
+      }
+
+      const practices = await this.practiceService.findAll({
+        studentId: userId,
+      });
+      res.json(practices);
+    } catch (error) {
+      res.status(500).json({ message: 'Error al obtener prácticas', error });
+    }
+  }
+
+  /**
+   * Get statistics for the authenticated student
+   */
+  async getMyStats(req: Request, res: Response) {
+    try {
+      const authReq = req as { user?: { id?: string } };
+      const userId = authReq.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: 'Usuario no autenticado' });
+      }
+
+      const stats = await this.practiceService.getStudentStats(userId);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: 'Error al obtener estadísticas', error });
+    }
   }
 
   /**

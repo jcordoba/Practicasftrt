@@ -2,13 +2,22 @@ import prisma from '../../../prisma';
 import { CreatePracticeDto, UpdatePracticeDto } from '../dtos/practice.dto';
 import { Practice, PracticeStatus } from '@prisma/client';
 
+type PracticeWithRelations = Practice & {
+  student: unknown;
+  tutor: unknown;
+  teacher: unknown;
+  reports: unknown[];
+};
+
 export class PracticeService {
-  async create(data: CreatePracticeDto): Promise<any> {
+  async create(data: CreatePracticeDto): Promise<PracticeWithRelations> {
     return await prisma.practice.create({
       data: {
+        name: data.name,
+        description: data.description,
         studentId: data.studentId,
-        tutorId: data.tutorId,
-        teacherId: data.teacherId,
+        ...(data.tutorId && { tutorId: data.tutorId }),
+        ...(data.teacherId && { teacherId: data.teacherId }),
         institution: data.institution,
         startDate: data.startDate,
         endDate: data.endDate,
@@ -24,8 +33,13 @@ export class PracticeService {
     });
   }
 
-  async findAll(filter?: { studentId?: string; tutorId?: string; teacherId?: string; status?: PracticeStatus }): Promise<any[]> {
-    return await prisma.practice.findMany({
+  async findAll(filter?: {
+    studentId?: string;
+    tutorId?: string;
+    teacherId?: string;
+    status?: PracticeStatus;
+  }): Promise<PracticeWithRelations[]> {
+    return (await prisma.practice.findMany({
       where: {
         ...(filter?.studentId && { studentId: filter.studentId }),
         ...(filter?.tutorId && { tutorId: filter.tutorId }),
@@ -38,10 +52,10 @@ export class PracticeService {
         teacher: true,
         reports: true,
       },
-    }) as any;
+    })) as PracticeWithRelations[];
   }
 
-  async findOne(id: string): Promise<any> {
+  async findOne(id: string): Promise<PracticeWithRelations | null> {
     return await prisma.practice.findUnique({
       where: { id },
       include: {
@@ -55,9 +69,11 @@ export class PracticeService {
 
   async update(id: string, data: UpdatePracticeDto): Promise<Practice | null> {
     try {
-      return await prisma.practice.update({
+      return (await prisma.practice.update({
         where: { id },
         data: {
+          ...(data.name && { name: data.name }),
+          ...(data.description && { description: data.description }),
           ...(data.institution && { institution: data.institution }),
           ...(data.startDate && { startDate: data.startDate }),
           ...(data.endDate && { endDate: data.endDate }),
@@ -70,8 +86,8 @@ export class PracticeService {
           teacher: true,
           reports: true,
         },
-      }) as any;
-    } catch (error) {
+      })) as PracticeWithRelations;
+    } catch {
       return null;
     }
   }
@@ -82,7 +98,7 @@ export class PracticeService {
         where: { id },
       });
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -94,8 +110,8 @@ export class PracticeService {
     return !!practice;
   }
 
-  async findByStudent(studentId: string): Promise<Practice[]> {
-    return await prisma.practice.findMany({
+  async findByStudent(studentId: string): Promise<PracticeWithRelations[]> {
+    return (await prisma.practice.findMany({
       where: { studentId },
       include: {
         student: true,
@@ -103,11 +119,11 @@ export class PracticeService {
         teacher: true,
         reports: true,
       },
-    }) as any;
+    })) as PracticeWithRelations[];
   }
 
-  async findByTutor(tutorId: string): Promise<Practice[]> {
-    return await prisma.practice.findMany({
+  async findByTutor(tutorId: string): Promise<PracticeWithRelations[]> {
+    return (await prisma.practice.findMany({
       where: { tutorId },
       include: {
         student: true,
@@ -115,11 +131,11 @@ export class PracticeService {
         teacher: true,
         reports: true,
       },
-    }) as any;
+    })) as PracticeWithRelations[];
   }
 
-  async findByTeacher(teacherId: string): Promise<Practice[]> {
-    return await prisma.practice.findMany({
+  async findByTeacher(teacherId: string): Promise<PracticeWithRelations[]> {
+    return (await prisma.practice.findMany({
       where: { teacherId },
       include: {
         student: true,
@@ -127,6 +143,35 @@ export class PracticeService {
         teacher: true,
         reports: true,
       },
-    }) as any;
+    })) as PracticeWithRelations[];
+  }
+
+  async getStudentStats(studentId: string): Promise<{
+    totalPractices: number;
+    activePractices: number;
+    completedPractices: number;
+    totalHoursLogged: number;
+    totalHoursRequired: number;
+    totalReports: number;
+    averageHoursPerReport: number;
+  }> {
+    const practices = await this.findByStudent(studentId);
+    const totalReports = practices.reduce((sum, p) => sum + (p.reports?.length || 0), 0);
+    const totalHoursLogged = practices.reduce((sum, p) => {
+      if (!p.reports || !Array.isArray(p.reports)) return sum;
+      return (
+        sum + p.reports.reduce((hrs: number, r: { hours?: number }) => hrs + (r.hours || 0), 0)
+      );
+    }, 0);
+
+    return {
+      totalPractices: practices.length,
+      activePractices: practices.filter((p) => p.status === 'IN_PROGRESS').length,
+      completedPractices: practices.filter((p) => p.status === 'COMPLETED').length,
+      totalHoursLogged,
+      totalHoursRequired: practices.reduce((sum, p) => sum + p.hours, 0),
+      totalReports,
+      averageHoursPerReport: totalReports > 0 ? totalHoursLogged / totalReports : 0,
+    };
   }
 }

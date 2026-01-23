@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { 
-  getAllUsers, 
-  getMyProfile, 
-  createUser, 
-  updateUser, 
+import {
+  getAllUsers,
+  getMyProfile,
+  createUser,
+  updateUser,
   assignRoles,
   getUserRoles,
   getUserPermissions,
@@ -11,7 +11,7 @@ import {
   getMyPermissions,
   checkMyPermission,
   checkMyRole,
-  activateDeactivateUser
+  activateDeactivateUser,
 } from '../modules/users/controllers/user.controller';
 import { jwtMiddleware } from '../modules/auth/middlewares/jwt.middleware';
 import { roleGuard } from '../middleware/role.guard';
@@ -43,13 +43,15 @@ router.get('/:id/roles', getUserRoles);
 // [AUTHENTICATED] Obtener permisos de un usuario específico
 router.get('/:id/permissions', getUserPermissions);
 
-// Rutas protegidas que requieren autenticación y rol de COORDINATOR, ADMIN o ADMIN_TECNICO
-const adminOrCoordinator = roleGuard(['COORDINATOR', 'ADMIN', 'ADMIN_TECNICO']);
+// Rutas protegidas que requieren autenticación y rol de COORDINADOR_PRACTICAS, ADMIN o ADMINISTRADOR_TECNICO
+const adminOrCoordinator = roleGuard(['COORDINADOR_PRACTICAS', 'ADMIN', 'ADMINISTRADOR_TECNICO']);
 
 router.get('/', adminOrCoordinator, getAllUsers);
-router.post('/', rbacMiddleware(['ADMIN_TECNICO']), createUser);
+router.post('/', rbacMiddleware(['ADMINISTRADOR_TECNICO']), createUser);
 router.put('/:id', adminOrCoordinator, updateUser);
-router.post('/:id/roles', rbacMiddleware(['ADMIN_TECNICO']), assignRoles);
-router.patch('/:id/activate', rbacMiddleware(['ADMIN_TECNICO']), activateDeactivateUser);
+router.patch('/:id', adminOrCoordinator, updateUser);
+router.post('/:id/roles', rbacMiddleware(['ADMINISTRADOR_TECNICO']), assignRoles);
+router.put('/:id/roles', adminOrCoordinator, assignRoles);
+router.patch('/:id/activate', rbacMiddleware(['ADMINISTRADOR_TECNICO']), activateDeactivateUser);
 
 export default router;

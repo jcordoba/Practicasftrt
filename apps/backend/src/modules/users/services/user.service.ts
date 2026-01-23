@@ -28,7 +28,7 @@ export class UserService {
     if (existingUser) {
       throw new BadRequestError('El usuario ya existe');
     }
-    return userRepository.create(createUserDto as any);
+    return userRepository.create(createUserDto);
   }
 
   async findAll(): Promise<User[]> {
@@ -58,9 +58,9 @@ export class UserService {
 
     // Validar que todos los roleIds existan
     const existingRoles = await prisma.role.findMany({
-      where: { id: { in: roleIds } }
+      where: { id: { in: roleIds } },
     });
-    
+
     if (existingRoles.length !== roleIds.length) {
       throw new BadRequestError('Uno o más roles no existen');
     }
@@ -69,7 +69,7 @@ export class UserService {
     await prisma.userRole.deleteMany({ where: { userId } });
 
     // Luego, asignar los nuevos roles
-    const userRoleData = roleIds.map(roleId => ({
+    const userRoleData = roleIds.map((roleId) => ({
       userId,
       roleId,
     }));
@@ -77,7 +77,44 @@ export class UserService {
     await prisma.userRole.createMany({ data: userRoleData });
   }
 
-  async getUserRoles(userId: string): Promise<any[]> {
+  async assignRolesByName(userId: string, roleNames: string[]): Promise<void> {
+    // Validar que el usuario exista
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new BadRequestError('Usuario no encontrado');
+    }
+
+    // Obtener los IDs de los roles por nombre
+    const roles = await prisma.role.findMany({
+      where: { nombre: { in: roleNames } },
+    });
+
+    if (roles.length !== roleNames.length) {
+      throw new BadRequestError('Uno o más roles no existen');
+    }
+
+    const roleIds = roles.map((role) => role.id);
+
+    // Primero, eliminar los roles actuales del usuario para evitar duplicados
+    await prisma.userRole.deleteMany({ where: { userId } });
+
+    // Luego, asignar los nuevos roles
+    const userRoleData = roleIds.map((roleId) => ({
+      userId,
+      roleId,
+    }));
+
+    await prisma.userRole.createMany({ data: userRoleData });
+  }
+
+  async getUserRoles(userId: string): Promise<
+    Array<{
+      id: string;
+      nombre: string;
+      estado: string;
+      permissions?: Array<{ permission: unknown }>;
+    }>
+  > {
     const userWithRoles = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -87,34 +124,42 @@ export class UserService {
               include: {
                 permissions: {
                   include: {
-                    permission: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    permission: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!userWithRoles) {
       throw new BadRequestError('Usuario no encontrado');
     }
 
-    return userWithRoles.roles.map(userRole => userRole.role);
+    return userWithRoles.roles.map((userRole) => userRole.role);
   }
 
-  async getUserPermissions(userId: string): Promise<any[]> {
+  async getUserPermissions(userId: string): Promise<
+    Array<{
+      id: string;
+      nombre: string;
+      estado: string;
+    }>
+  > {
     const userRoles = await this.getUserRoles(userId);
     const permissions = new Map();
 
-    userRoles.forEach(role => {
-      role.permissions?.forEach((rolePermission: any) => {
-        const permission = rolePermission.permission;
-        if (permission && permission.estado === 'ACTIVO') {
-          permissions.set(permission.id, permission);
-        }
-      });
+    userRoles.forEach((role) => {
+      role.permissions?.forEach(
+        (rolePermission: { permission: { id: string; estado: string } }) => {
+          const permission = rolePermission.permission;
+          if (permission && permission.estado === 'ACTIVO') {
+            permissions.set(permission.id, permission);
+          }
+        },
+      );
     });
 
     return Array.from(permissions.values());
@@ -122,12 +167,12 @@ export class UserService {
 
   async hasPermission(userId: string, permissionName: string): Promise<boolean> {
     const permissions = await this.getUserPermissions(userId);
-    return permissions.some(permission => permission.nombre === permissionName);
+    return permissions.some((permission) => permission.nombre === permissionName);
   }
 
   async hasRole(userId: string, roleName: string): Promise<boolean> {
     const roles = await this.getUserRoles(userId);
-    return roles.some(role => role.nombre === roleName);
+    return roles.some((role) => role.nombre === roleName);
   }
 
   async activateDeactivate(id: string, isActive: boolean): Promise<User> {

@@ -19,7 +19,7 @@ export class AuthService {
 
     if (!user) {
       // Si el usuario no existe, lo creamos automáticamente con contraseña temporal
-      user = await userService.create({ 
+      user = await userService.create({
         email,
         password: '', // se debe actualizar luego con contraseña segura
         name: email.split('@')[0],
@@ -36,31 +36,39 @@ export class AuthService {
 
   // Generar token y devolver usuario sin contraseña
   async login(user: User): Promise<LoginResponse> {
-    const payload = { 
-      email: user.email, 
+    const payload = {
+      email: user.email,
       sub: user.id,
-      roles: user.roles?.map(ur => {
-        if (typeof ur === 'object' && ur !== null) {
-          return (ur as any).role?.name || (ur as any).name || 'ESTUDIANTE';
-        }
-        return 'ESTUDIANTE';
-      }) || []
+      roles:
+        user.roles?.map((ur) => {
+          if (typeof ur === 'object' && ur !== null) {
+            const roleObj = ur as unknown as Record<string, unknown>;
+            const role = roleObj.role as Record<string, unknown> | undefined;
+            return (role?.nombre as string) || (roleObj.nombre as string) || 'ESTUDIANTE';
+          }
+          return 'ESTUDIANTE';
+        }) || [],
     };
-    
+
     const access_token = jwt.sign(payload, process.env.JWT_SECRET!, {
       expiresIn: process.env.JWT_EXPIRES_IN || '24h',
     } as jwt.SignOptions);
 
-    const { password, ...userWithoutPassword } = user as any;
-    
+    const userObj = user as unknown as Record<string, unknown>;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userWithoutPassword } = userObj;
+
     return {
       access_token,
-      user: userWithoutPassword,
+      user: userWithoutPassword as Omit<User, 'password'>,
     };
   }
 
   // Login con Google (crea automáticamente si no existe)
-  async googleLogin(profile: any): Promise<LoginResponse> {
+  async googleLogin(profile: {
+    emails: Array<{ value: string }>;
+    name: { givenName: string; familyName: string };
+  }): Promise<LoginResponse> {
     const { emails, name } = profile;
     const email = emails[0].value;
 
@@ -69,7 +77,7 @@ export class AuthService {
     }
 
     let user = await userService.findByEmail(email);
-    
+
     if (!user) {
       user = await userService.create({
         email,
@@ -87,10 +95,10 @@ export class AuthService {
   // Verificación del token
   async verifyToken(token: string): Promise<User | null> {
     try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET!) as any;
+      const payload = jwt.verify(token, process.env.JWT_SECRET!) as { sub: string };
       const user = await userService.findOne(payload.sub);
       return user && user.isActive ? user : null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }

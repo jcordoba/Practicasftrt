@@ -1,0 +1,1 @@
+SELECT id, nombre, LENGTH(nombre) as name_length FROM "Role" ORDER BY nombre;

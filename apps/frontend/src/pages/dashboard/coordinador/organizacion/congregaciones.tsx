@@ -176,7 +176,7 @@ export default function CongregacionesPage() {
       {/* Header */}
       <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <SafeLink href="/dashboard/coordinador/organizacion" className="text-white hover:text-yellow-400 transition">
+          <SafeLink href="/dashboard/coordinador/organizacion" className="text-white hover:text-blue-200">
             ← Volver a Organización
           </SafeLink>
           <h1 className="text-xl font-bold">SION Prácticas FTR - Congregaciones</h1>
@@ -232,7 +232,7 @@ export default function CongregacionesPage() {
                   required
                   value={createForm.name}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 !text-black"
                 />
               </div>
               <div>
@@ -241,7 +241,7 @@ export default function CongregacionesPage() {
                   required
                   value={createForm.districtId}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, districtId: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 !text-black"
                 >
                   <option value="">Seleccionar Distrito</option>
                   {districts.map(district => (

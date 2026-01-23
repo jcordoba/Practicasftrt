@@ -2,7 +2,7 @@
 
 import { Request, Response } from 'express';
 import { UserService } from '../services/user.service';
-import { CreateUserDto, UpdateUserDto, AssignRolesDto } from '../dtos/user.dto';
+import { UpdateUserDto, AssignRolesDto } from '../dtos/user.dto';
 import { AuthenticatedRequest } from '../../auth/middlewares/jwt.middleware';
 // TODO: Importar guards para JWT y RBAC
 
@@ -36,9 +36,20 @@ export const getMyProfile = async (req: Request, res: Response) => {
 // [ADMIN] Crear usuario local
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const createUserDto: CreateUserDto = req.body;
-    const user = await userService.create(createUserDto);
-    res.status(201).json(user);
+    const { roles, ...userData } = req.body;
+
+    // Crear el usuario
+    const user = await userService.create(userData);
+
+    // Si se proporcionaron roles, asignarlos
+    if (roles && Array.isArray(roles) && roles.length > 0) {
+      await userService.assignRolesByName(user.id, roles);
+    }
+
+    // Obtener el usuario con los roles asignados
+    const userWithRoles = await userService.findOne(user.id);
+
+    res.status(201).json(userWithRoles);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';
     res.status(400).json({ message: errorMessage });
@@ -62,8 +73,19 @@ export const updateUser = async (req: Request, res: Response) => {
 export const assignRoles = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-    const assignRolesDto: AssignRolesDto = req.body;
-    await userService.assignRoles(id, assignRolesDto);
+    const body = req.body;
+
+    // Verificar si se enviaron roleIds o roles (nombres)
+    if (body.roleIds) {
+      const assignRolesDto: AssignRolesDto = body;
+      await userService.assignRoles(id, assignRolesDto);
+    } else if (body.roles) {
+      // Si se enviaron nombres de roles, usar el método alternativo
+      await userService.assignRolesByName(id, body.roles);
+    } else {
+      return res.status(400).json({ message: 'Debe proporcionar roleIds o roles' });
+    }
+
     res.json({ message: 'Roles asignados exitosamente' });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Error en el servidor';

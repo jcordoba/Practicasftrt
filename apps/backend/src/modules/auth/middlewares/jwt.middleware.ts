@@ -2,47 +2,77 @@
 
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { UserService } from '../../users/services/user.service';
-import { User } from '../../users/entities/user.entity';
+import prisma from '../../../prisma';
 
-const userService = new UserService();
 const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 
-export interface AuthenticatedRequest extends Request {
-  user?: User;
+interface UserRole {
+  role: {
+    nombre: string;
+  };
 }
 
-export const jwtMiddleware: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    estado?: string;
+    roles?: UserRole[];
+  };
+}
+
+export const jwtMiddleware: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const authReq = req as AuthenticatedRequest;
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
-    
+
     if (!token) {
       return res.status(401).json({ message: 'Token no proporcionado' });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    
+    const decoded = jwt.verify(token, JWT_SECRET) as { sub?: string; id?: string };
+
     if (!decoded || (!decoded.sub && !decoded.id)) {
       return res.status(401).json({ message: 'Token inválido' });
     }
 
     // Obtener usuario completo con roles
     const userId = decoded.sub || decoded.id;
-    const user = await userService.findOne(userId);
-    
+    console.log('🔐 JWT Middleware - UserID:', userId);
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        roles: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    });
+
+    console.log('🔐 JWT Middleware - Usuario encontrado:', user?.email);
+    console.log('🔐 JWT Middleware - Roles (raw):', JSON.stringify(user?.roles, null, 2));
+
     if (!user) {
       return res.status(401).json({ message: 'Usuario no encontrado' });
     }
 
-    if (!user.isActive) {
+    // Validar que el usuario esté activo
+    const isActive = user.estado ? user.estado === 'ACTIVO' : true;
+    if (!isActive) {
       return res.status(401).json({ message: 'Usuario inactivo' });
     }
 
-    console.log('JWT Middleware - User found:', JSON.stringify(user, null, 2));
+    // Attach user to request
     authReq.user = user;
+    console.log('🔐 JWT Middleware - Usuario adjuntado a request');
     next();
-  } catch (error) {
+  } catch {
     return res.status(401).json({ message: 'Token inválido' });
   }
 };
