@@ -1,0 +1,4 @@
+ALTER TABLE "Union" ADD COLUMN IF NOT EXISTS "descripcion" TEXT;
+ALTER TABLE "Association" ADD COLUMN IF NOT EXISTS "descripcion" TEXT;
+ALTER TABLE "District" ADD COLUMN IF NOT EXISTS "descripcion" TEXT;
+ALTER TABLE "Congregation" ADD COLUMN IF NOT EXISTS "descripcion" TEXT;

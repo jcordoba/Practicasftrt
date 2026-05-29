@@ -40,6 +40,18 @@ export class CreatePracticeDto {
 export class UpdatePracticeDto {
   @IsString()
   @IsOptional()
+  studentId?: string;
+
+  @IsString()
+  @IsOptional()
+  tutorId?: string;
+
+  @IsString()
+  @IsOptional()
+  teacherId?: string;
+
+  @IsString()
+  @IsOptional()
   name?: string;
 
   @IsString()

@@ -22,6 +22,7 @@ interface Report {
   activities: string;
   hours: number;
   observations: string;
+  validationStatus?: 'APPROVED' | 'REJECTED' | 'PENDING';
   practice: Practice;
   createdAt: string;
 }
@@ -32,6 +33,58 @@ export default function ValidarReportesDocente() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const getValidationStatus = (observations?: string): 'APPROVED' | 'REJECTED' | 'PENDING' => {
+    if (!observations) return 'PENDING';
+    const normalized = observations.toUpperCase();
+    if (normalized.includes('[RECHAZADO]')) return 'REJECTED';
+    if (normalized.includes('[APROBADO]')) return 'APPROVED';
+    return 'PENDING';
+  };
+
+  const getValidationBadge = (status: 'APPROVED' | 'REJECTED' | 'PENDING') => {
+    if (status === 'APPROVED') {
+      return <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-100 !text-green-800">Aprobado</span>;
+    }
+    if (status === 'REJECTED') {
+      return <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-100 !text-red-800">Rechazado</span>;
+    }
+    return <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 !text-yellow-800">Pendiente</span>;
+  };
+
+  const handleValidation = async (report: Report, decision: 'APPROVED' | 'REJECTED') => {
+    try {
+      setActionLoading(true);
+      setFeedback(null);
+
+      const mark = decision === 'APPROVED' ? '[APROBADO]' : '[RECHAZADO]';
+      const timestamp = new Date().toLocaleString('es-ES');
+      const note = `${mark} Validado por coordinación el ${timestamp}`;
+      const mergedObservations = report.observations
+        ? `${report.observations}\n\n${note}`
+        : note;
+
+      const response = await authenticatedFetch(`/api/practices/reports/${report.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ observations: mergedObservations })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'No fue posible actualizar la validación del reporte');
+      }
+
+      await fetchReports();
+      setSelectedReport(null);
+      setFeedback(decision === 'APPROVED' ? 'Reporte aprobado correctamente.' : 'Reporte rechazado correctamente.');
+    } catch (error) {
+      setFeedback(error instanceof Error ? error.message : 'Error al validar el reporte');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -80,7 +133,12 @@ export default function ValidarReportesDocente() {
       
       // Ordenar por fecha más reciente
       allReports.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      setReports(allReports);
+      setReports(
+        allReports.map((report) => ({
+          ...report,
+          validationStatus: getValidationStatus(report.observations),
+        }))
+      );
     } catch (error) {
       console.error('Error fetching reports:', error);
     } finally {
@@ -100,13 +158,13 @@ export default function ValidarReportesDocente() {
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <header className="w-full bg-blue-900 bg-opacity-90 backdrop-blur-lg text-white py-4 px-6 flex justify-between items-center sticky top-0 z-40 shadow-md">
+      <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center sticky top-0 z-40 shadow-md">
         <div className="flex items-center gap-4">
           <SafeLink href="/dashboard/coordinador" className="text-white hover:text-blue-200 flex items-center">
-            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Volver al Dashboard
+            Volver
           </SafeLink>
           <h1 className="text-xl font-bold">SION Prácticas FTR</h1>
         </div>
@@ -114,6 +172,12 @@ export default function ValidarReportesDocente() {
       </header>
 
       <main className="flex flex-col items-center w-full max-w-7xl mt-8 px-4 pb-12">
+        {feedback && (
+          <div className="w-full mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 !text-blue-800 font-medium">
+            {feedback}
+          </div>
+        )}
+
         {/* Resumen Estadístico */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mb-6">
           <div className="bg-white border-l-4 border-blue-600 rounded-lg shadow-lg p-6">
@@ -199,7 +263,8 @@ export default function ValidarReportesDocente() {
                       <p className="text-xs !text-gray-500 mt-1">{report.practice.institution}</p>
                     </div>
                     <div className="text-right">
-                      <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium mb-2">
+                      <div className="mb-2 flex justify-end">{getValidationBadge(report.validationStatus || 'PENDING')}</div>
+                      <div className="bg-blue-100 !text-white px-3 py-1 rounded-full text-sm font-medium mb-2">
                         {report.hours}h
                       </div>
                       <p className="text-xs !text-gray-500">
@@ -307,6 +372,20 @@ export default function ValidarReportesDocente() {
             </div>
 
             <div className="flex gap-3 mt-6">
+              <Button
+                onClick={() => handleValidation(selectedReport, 'APPROVED')}
+                disabled={actionLoading}
+                className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-60"
+              >
+                Aprobar
+              </Button>
+              <Button
+                onClick={() => handleValidation(selectedReport, 'REJECTED')}
+                disabled={actionLoading}
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-60"
+              >
+                Rechazar
+              </Button>
               <Button 
                 onClick={() => setSelectedReport(null)}
                 className="flex-1 bg-gray-500 hover:bg-gray-600"

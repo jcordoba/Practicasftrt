@@ -4,6 +4,7 @@ import Alert from "../../../components/Alert";
 import { useAuth, useAuthenticatedFetch } from "../../../contexts/AuthContext";
 import SafeLink from "@/components/SafeLink";
 import UserDropdown from "../../../components/UserDropdown";
+import StatusDropdown from "../../../components/StatusDropdown";
 
 interface Practice {
   id: string;
@@ -14,18 +15,24 @@ interface Practice {
   endDate: string;
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   hours: number;
+  studentId?: string;
+  tutorId?: string;
+  teacherId?: string;
   student?: {
     id: string;
+    nombre?: string;
     name: string;
     email: string;
   };
   tutor?: {
     id: string;
+    nombre?: string;
     name: string;
     email: string;
   };
   teacher?: {
     id: string;
+    nombre?: string;
     name: string;
     email: string;
   };
@@ -51,11 +58,18 @@ const statusLabels = {
 };
 
 const statusColors = {
-  PENDING: 'bg-yellow-100 !text-slate-900 border border-yellow-200',
-  IN_PROGRESS: 'bg-green-100 !text-slate-900 border border-green-200',
-  COMPLETED: 'bg-blue-100 !text-slate-900 border border-blue-200',
-  CANCELLED: 'bg-red-100 !text-slate-900 border border-red-200'
+  PENDING: 'bg-yellow-100 !text-slate-900 border-yellow-200',
+  IN_PROGRESS: 'bg-green-100 !text-slate-900 border-green-200',
+  COMPLETED: 'bg-blue-100 !text-slate-900 border-blue-200',
+  CANCELLED: 'bg-red-100 !text-slate-900 border-red-200'
 };
+
+const statusOptions = [
+  { value: 'PENDING', label: 'Pendiente', triggerClass: statusColors.PENDING, dotClass: 'bg-yellow-500' },
+  { value: 'IN_PROGRESS', label: 'En Progreso', triggerClass: statusColors.IN_PROGRESS, dotClass: 'bg-green-600' },
+  { value: 'COMPLETED', label: 'Completada', triggerClass: statusColors.COMPLETED, dotClass: 'bg-blue-600' },
+  { value: 'CANCELLED', label: 'Cancelada', triggerClass: statusColors.CANCELLED, dotClass: 'bg-red-600' }
+];
 
 export default function CoordinadorPracticasPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
@@ -76,6 +90,11 @@ export default function CoordinadorPracticasPage() {
     tutorId: '',
     teacherId: ''
   });
+
+  const getDisplayName = (user?: { nombre?: string; name?: string }) => {
+    if (!user) return '';
+    return user.nombre || user.name || '';
+  };
 
   // Auto-hide error after 5 seconds
   useEffect(() => {
@@ -133,6 +152,9 @@ export default function CoordinadorPracticasPage() {
         method: 'POST',
         body: JSON.stringify({
           ...createForm,
+          studentId: createForm.studentId.trim(),
+          tutorId: createForm.tutorId.trim(),
+          teacherId: createForm.teacherId.trim(),
           startDate: new Date(createForm.startDate).toISOString(),
           endDate: new Date(createForm.endDate).toISOString()
         })
@@ -169,12 +191,8 @@ export default function CoordinadorPracticasPage() {
     }
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/practices/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await authenticatedFetch(`/api/practices/${id}`, {
+        method: 'DELETE'
       });
       
       if (!response.ok) {
@@ -184,6 +202,23 @@ export default function CoordinadorPracticasPage() {
       await fetchPractices();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al eliminar la práctica');
+    }
+  };
+
+  const handleStatusChange = async (practiceId: string, newStatus: Practice['status']) => {
+    try {
+      const response = await authenticatedFetch(`/api/practices/${practiceId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al actualizar el estado');
+      }
+      
+      await fetchPractices();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al actualizar el estado');
     }
   };
 
@@ -200,13 +235,13 @@ export default function CoordinadorPracticasPage() {
   return (
     <div className="min-h-screen bg-slate-100">
       {/* Header */}
-      <header className="w-full bg-blue-900 text-white py-6 px-8 flex justify-between items-center shadow-lg">
+      <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center shadow-lg">
         <div className="flex items-center gap-4">
-          <SafeLink href="/dashboard/coordinador" className="text-white hover:text-slate-300 flex items-center transition-colors">
-            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          <SafeLink href="/dashboard/coordinador" className="text-white hover:text-blue-200 transition flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Volver al Dashboard
+            Volver
           </SafeLink>
           <h1 className="text-2xl font-bold !text-white">Gestión de Prácticas</h1>
         </div>        
@@ -421,7 +456,7 @@ export default function CoordinadorPracticasPage() {
             </div>
           )}
           
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overflow-y-visible">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-blue-900">
                 <tr>
@@ -458,17 +493,25 @@ export default function CoordinadorPracticasPage() {
                       <td className="px-6 py-4">
                         {practice.student ? (
                           <div>
-                            <div className="font-bold !text-slate-900">{practice.student.name}</div>
+                            <div className="font-bold !text-slate-900">{getDisplayName(practice.student)}</div>
                             <div className="text-sm !text-slate-600 mt-1">{practice.student.email}</div>
                           </div>
                         ) : (
-                          <span className="!text-slate-600 italic">Sin asignar</span>
+                          <div>
+                            <span className="!text-slate-600 italic">Sin asignar</span>
+                            {practice.studentId && (
+                              <div className="text-xs !text-slate-500 mt-1">ID: {practice.studentId}</div>
+                            )}
+                          </div>
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${statusColors[practice.status]}`}>
-                          {statusLabels[practice.status]}
-                        </span>
+                        <StatusDropdown
+                          value={practice.status}
+                          onChange={(newStatus) => handleStatusChange(practice.id, newStatus as Practice['status'])}
+                          options={statusOptions}
+                          size="sm"
+                        />
                       </td>
                       <td className="px-6 py-4">
                         <div className="font-bold !text-slate-900">{practice.hours}h</div>
@@ -486,12 +529,12 @@ export default function CoordinadorPracticasPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex justify-center gap-2">
-                          <Button 
-                            onClick={() => window.location.href = `/dashboard/coordinador/practicas/${practice.id}`}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                          <SafeLink 
+                            href={`/dashboard/coordinador/practicas/${practice.id}`}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors inline-block"
                           >
                             Ver
-                          </Button>
+                          </SafeLink>
                           <Button 
                             onClick={() => handleDeletePractice(practice.id)}
                             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"

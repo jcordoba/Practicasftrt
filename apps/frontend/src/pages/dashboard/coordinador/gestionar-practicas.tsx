@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth, useAuthenticatedFetch } from '../../../contexts/AuthContext';
 import CustomCalendar from '../../../components/CustomCalendar';
+import Select from '../../../components/Select';
 
 interface Practice {
   id: string;
@@ -228,10 +229,10 @@ export default function GestionarPracticas() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'IN_PROGRESS': return 'bg-green-100 text-green-800';
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-      case 'COMPLETED': return 'bg-blue-100 text-blue-800';
-      case 'CANCELLED': return 'bg-red-100 text-red-800';
+      case 'IN_PROGRESS': return 'bg-green-100 !text-white';
+      case 'PENDING': return 'bg-yellow-100 !text-white';
+      case 'COMPLETED': return 'bg-blue-100 !text-white';
+      case 'CANCELLED': return 'bg-red-100 !text-white';
       default: return 'bg-gray-100 !text-slate-800';
     }
   };
@@ -260,9 +261,12 @@ export default function GestionarPracticas() {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => router.back()}
-            className="text-white hover:text-slate-300"
+            className="text-white hover:text-blue-200 transition flex items-center"
           >
-            ← Volver
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Volver
           </button>
           <h1 className="text-xl font-bold !text-white">Gestionar Prácticas</h1>
         </div>
@@ -294,17 +298,19 @@ export default function GestionarPracticas() {
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                 />
               </div>
-              <select
+              <Select
+                label=""
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm"
-              >
-                <option value="all">Todos los estados</option>
-                <option value="PENDING">Pendientes</option>
-                <option value="IN_PROGRESS">En Progreso</option>
-                <option value="COMPLETED">Completadas</option>
-                <option value="CANCELLED">Canceladas</option>
-              </select>
+                options={[
+                  { value: 'all', label: 'Todos los estados' },
+                  { value: 'PENDING', label: 'Pendientes' },
+                  { value: 'IN_PROGRESS', label: 'En Progreso' },
+                  { value: 'COMPLETED', label: 'Completadas' },
+                  { value: 'CANCELLED', label: 'Canceladas' }
+                ]}
+                className="border border-gray-300 rounded-xl pl-3 py-2 text-sm font-medium shadow-sm ring-1 ring-black/5"
+              />
             </div>
           </div>
         </div>
@@ -666,16 +672,18 @@ export default function GestionarPracticas() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium !text-slate-800 mb-1">Estado</label>
-                    <select
+                    <Select
+                      label=""
                       value={editingPractice.status}
                       onChange={(e) => setEditingPractice(prev => prev ? { ...prev, status: e.target.value as any } : null)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                    >
-                      <option value="PENDING">Pendiente</option>
-                      <option value="IN_PROGRESS">En Progreso</option>
-                      <option value="COMPLETED">Completada</option>
-                      <option value="CANCELLED">Cancelada</option>
-                    </select>
+                      options={[
+                        { value: 'PENDING', label: 'Pendiente' },
+                        { value: 'IN_PROGRESS', label: 'En Progreso' },
+                        { value: 'COMPLETED', label: 'Completada' },
+                        { value: 'CANCELLED', label: 'Cancelada' }
+                      ]}
+                      className="w-full border border-gray-300 rounded-xl pl-3 py-2 text-sm font-medium shadow-sm ring-1 ring-black/5"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium !text-slate-800 mb-1">Horas Requeridas</label>

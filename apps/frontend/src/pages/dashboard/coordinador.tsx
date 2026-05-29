@@ -204,7 +204,7 @@ export default function CoordinadorDashboard() {
   return (
     <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Enhanced Header with glassmorphism effect */}
-      <header className="w-full bg-blue-900 bg-opacity-90 backdrop-blur-lg text-white py-4 px-6 flex justify-between items-center sticky top-0 z-40 shadow-md">
+      <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center sticky top-0 z-40 shadow-md">
         <div className="flex items-center">
           <h1 className="text-xl font-bold">SION Prácticas FTR</h1>
         </div>

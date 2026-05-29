@@ -3,6 +3,13 @@ import { Request, Response } from 'express';
 import { PlacementService } from '../services/placement.service';
 import { CreatePlacementDto, UpdatePlacementDto } from '../dtos/placement.dto';
 
+type PlacementRequest = Request & {
+  user?: {
+    sub?: string;
+    id?: string;
+  };
+};
+
 export class PlacementController {
   private placementService: PlacementService;
 
@@ -55,7 +62,8 @@ export class PlacementController {
   async create(req: Request, res: Response) {
     try {
       const data: CreatePlacementDto = req.body;
-      const assignedBy = (req as { user: { sub: string } }).user.sub;
+      const authReq = req as PlacementRequest;
+      const assignedBy = authReq.user?.sub || authReq.user?.id;
       const placement = await this.placementService.create(data, assignedBy);
       res.status(201).json(placement);
     } catch (error: unknown) {
@@ -258,6 +266,26 @@ export class PlacementController {
         termId: termId as string,
       });
       res.json(stats);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      res.status(500).json({ message });
+    }
+  }
+
+  /**
+   * Get placements for the authenticated user
+   */
+  async findMy(req: Request, res: Response) {
+    try {
+      const authReq = req as { user?: { id?: string } };
+      const userId = authReq.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: 'Usuario no autenticado' });
+      }
+
+      const placements = await this.placementService.findByStudent(userId);
+      res.json(placements);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Error desconocido';
       res.status(500).json({ message });

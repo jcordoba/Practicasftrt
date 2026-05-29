@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSafeRouter } from "../../../hooks/useSafeRouter";
 import SafeLink from "../../../components/SafeLink";
+import UserDropdown from "../../../components/UserDropdown";
 
 interface OrganizationalStats {
   totalUnions: number;
@@ -61,14 +62,6 @@ export default function OrganizacionPage() {
     }
   };
 
-  const handleLogout = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("userId");
-    }
-    safePush("/login");
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -85,112 +78,67 @@ export default function OrganizacionPage() {
     );
   }
 
+  const StatCard = ({ title, value, color }: { title: string; value: number; color: string }) => (
+    <div className={`bg-white rounded-2xl shadow-lg p-6 text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border-b-4 ${color}`}>
+      <div className="text-4xl font-bold !text-black mb-2">{value}</div>
+      <div className="!text-black font-semibold text-base uppercase tracking-wide">{title}</div>
+    </div>
+  );
+
+  const ActionCard = ({ href, title, description, color, icon }: { href: string; title: string; description: string; color: string; icon: string }) => (
+    <SafeLink href={href} className="block group">
+      <div className={`rounded-2xl p-6 text-center transition-all duration-300 border-2 border-gray-200 ${color} bg-white hover:bg-gray-50 transform hover:-translate-y-1 hover:shadow-lg`}>
+        <div className="text-4xl mb-4 transition-transform duration-300 group-hover:scale-110">{icon}</div>
+        <div className="font-bold !text-black text-xl mb-2 transition-colors duration-300 group-hover:!text-blue-700">{title}</div>
+        <div className="!text-black text-sm">{description}</div>
+      </div>
+    </SafeLink>
+  );
+
   return (
-    <div className="flex flex-col items-center min-h-screen bg-slate-100">
-      {/* Header */}
-      <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center">
+    <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center sticky top-0 z-40 shadow-md">
         <div className="flex items-center gap-4">
-          <SafeLink href="/dashboard/coordinador" className="text-white hover:text-blue-200">
-            ← Volver al Dashboard
+          <SafeLink href="/dashboard/coordinador" className="text-white hover:text-blue-200 transition flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Volver
           </SafeLink>
           <h1 className="text-xl font-bold">SION Prácticas FTR - Organización</h1>
         </div>
-        <div className="flex items-center gap-4">
-          <span>Coordinador</span>
-          <span className="bg-yellow-400 text-blue-900 rounded-full px-3 py-1 font-bold">C</span>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded transition"
-          >
-            Cerrar Sesión
-          </button>
-        </div>
+        <UserDropdown />
       </header>
 
-      <main className="flex flex-col items-center w-full max-w-6xl mt-8 px-4">
-        {/* Estadísticas Organizacionales */}
+      <main className="flex flex-col items-center w-full max-w-6xl mt-8 px-4 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 w-full mb-8">
-          <div className="bg-white rounded-lg shadow p-8 text-center border-4 border-blue-600">
-            <div className="text-6xl font-black !text-slate-900 mb-4">
-              {stats.totalUnions}
-            </div>
-            <div className="!text-slate-800 font-semibold text-lg uppercase tracking-wide">
-              Uniones
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-8 text-center border-4 border-green-600">
-            <div className="text-6xl font-black !text-slate-900 mb-4">
-              {stats.totalAssociations}
-            </div>
-            <div className="!text-slate-800 font-semibold text-lg uppercase tracking-wide">
-              Asociaciones
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-8 text-center border-4 border-orange-600">
-            <div className="text-6xl font-black !text-slate-900 mb-4">
-              {stats.totalDistricts}
-            </div>
-            <div className="!text-slate-800 font-semibold text-lg uppercase tracking-wide">
-              Distritos
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-8 text-center border-4 border-purple-600">
-            <div className="text-6xl font-black !text-slate-900 mb-4">
-              {stats.totalCongregations}
-            </div>
-            <div className="!text-slate-800 font-semibold text-lg uppercase tracking-wide">
-              Congregaciones
-            </div>
-          </div>
+          <StatCard title="Uniones" value={stats.totalUnions} color="border-blue-500" />
+          <StatCard title="Asociaciones" value={stats.totalAssociations} color="border-green-500" />
+          <StatCard title="Distritos" value={stats.totalDistricts} color="border-orange-500" />
+          <StatCard title="Congregaciones" value={stats.totalCongregations} color="border-purple-500" />
         </div>
 
-        {/* Gestión Organizacional */}
-        <div className="bg-white rounded-lg shadow p-8 w-full mb-8 border-4 border-slate-600">
-          <h2 className="text-3xl font-extrabold mb-8 !text-slate-900 uppercase tracking-wide">
+        <div className="bg-white rounded-2xl shadow-lg p-8 w-full mb-8">
+          <h2 className="text-2xl font-bold !text-black mb-6 flex items-center">
+            <svg className="w-6 h-6 mr-2 !text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
             Gestión Organizacional
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <SafeLink href="/dashboard/coordinador/organizacion/uniones" className="block">
-              <div className="border-4 border-blue-600 hover:border-blue-800 hover:bg-blue-50 rounded-lg p-6 text-center transition cursor-pointer bg-white">
-                <div className="text-blue-900 text-4xl mb-4">🏛️</div>
-                <div className="font-extrabold !text-slate-900 text-xl">Uniones</div>
-                <div className="text-base !text-slate-800 mt-3">Gestionar uniones</div>
-              </div>
-            </SafeLink>
-
-            <SafeLink href="/dashboard/coordinador/organizacion/asociaciones" className="block">
-              <div className="border-4 border-green-600 hover:border-green-800 hover:bg-green-50 rounded-lg p-6 text-center transition cursor-pointer bg-white">
-                <div className="text-green-900 text-4xl mb-4">🏢</div>
-                <div className="font-extrabold !text-slate-900 text-xl">Asociaciones</div>
-                <div className="text-base !text-slate-800 mt-3">Gestionar asociaciones</div>
-              </div>
-            </SafeLink>
-
-            <SafeLink href="/dashboard/coordinador/organizacion/distritos" className="block">
-              <div className="border-4 border-orange-600 hover:border-orange-800 hover:bg-orange-50 rounded-lg p-6 text-center transition cursor-pointer bg-white">
-                <div className="text-orange-900 text-4xl mb-4">🏘️</div>
-                <div className="font-extrabold !text-slate-900 text-xl">Distritos</div>
-                <div className="text-base !text-slate-800 mt-3">Gestionar distritos</div>
-              </div>
-            </SafeLink>
-
-            <SafeLink href="/dashboard/coordinador/organizacion/congregaciones" className="block">
-              <div className="border-4 border-purple-600 hover:border-purple-800 hover:bg-purple-50 rounded-lg p-6 text-center transition cursor-pointer bg-white">
-                <div className="text-purple-900 text-4xl mb-4">⛪</div>
-                <div className="font-extrabold !text-slate-900 text-xl">Congregaciones</div>
-                <div className="text-base !text-slate-800 mt-3">Gestionar congregaciones</div>
-              </div>
-            </SafeLink>
+            <ActionCard href="/dashboard/coordinador/organizacion/uniones" title="Uniones" description="Gestionar uniones" color="hover:border-blue-500" icon="🏛️" />
+            <ActionCard href="/dashboard/coordinador/organizacion/asociaciones" title="Asociaciones" description="Gestionar asociaciones" color="hover:border-green-500" icon="🏢" />
+            <ActionCard href="/dashboard/coordinador/organizacion/distritos" title="Distritos" description="Gestionar distritos" color="hover:border-orange-500" icon="🏘️" />
+            <ActionCard href="/dashboard/coordinador/organizacion/congregaciones" title="Congregaciones" description="Gestionar congregaciones" color="hover:border-purple-500" icon="⛪" />
           </div>
         </div>
 
-        {/* Jerarquía Organizacional */}
-        <div className="bg-white rounded-lg shadow p-8 w-full border-4 border-slate-600">
-          <h3 className="text-2xl font-extrabold mb-6 !text-slate-900 uppercase tracking-wide">
+        <div className="bg-white rounded-2xl shadow-lg p-8 w-full">
+          <h3 className="text-2xl font-bold mb-6 !text-black flex items-center">
+            <svg className="w-6 h-6 mr-2 !text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h18M3 17h18" />
+            </svg>
             Jerarquía Organizacional
           </h3>
           <div className="flex flex-col items-center space-y-4">

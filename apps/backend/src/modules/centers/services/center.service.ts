@@ -7,24 +7,14 @@ export class CenterService {
    * Crear un nuevo centro de práctica
    */
   async create(data: CreateCenterDto) {
-    // Validar que si es tipo congregacion, tenga congregationId
-    if (data.tipo === 'congregacion' && !data.congregationId) {
-      throw new Error('Para tipo "congregacion" se requiere congregationId');
-    }
-
-    // Validar que si es tipo institucion, tenga institutionId
-    if (data.tipo === 'institucion' && !data.institutionId) {
-      throw new Error('Para tipo "institucion" se requiere institutionId');
-    }
-
     const capacidadMaxima = data.capacidadMaxima || 5;
 
     const center = await prisma.center.create({
       data: {
         nombre: data.nombre,
         tipo: data.tipo,
-        congregationId: data.congregationId,
-        institutionId: data.institutionId,
+        congregationId: data.congregationId || null,
+        institutionId: data.institutionId || null,
         direccion: data.direccion,
         ciudad: data.ciudad,
         telefono: data.telefono,
@@ -111,7 +101,10 @@ export class CenterService {
       updateData.capacidadDisponible = data.capacidadMaxima - currentUsed;
 
       // Validar que no sea negativa
-      if (updateData.capacidadDisponible < 0) {
+      if (
+        typeof updateData.capacidadDisponible === 'number' &&
+        updateData.capacidadDisponible < 0
+      ) {
         throw new Error(
           'La nueva capacidad máxima es menor que la cantidad de estudiantes asignados',
         );

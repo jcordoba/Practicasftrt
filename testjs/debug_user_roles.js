@@ -5,31 +5,31 @@ const prisma = new PrismaClient();
 async function debugUserRoles() {
   try {
     console.log('=== Debugging User Roles ===');
-    
+
     // Find the admin user
     const user = await prisma.user.findUnique({
       where: { email: 'admin@sion.com' },
       include: {
         roles: {
           include: {
-            role: true
-          }
-        }
-      }
+            role: true,
+          },
+        },
+      },
     });
-    
+
     if (!user) {
       console.log('User not found!');
       return;
     }
-    
+
     console.log('User found:');
     console.log('- ID:', user.id);
     console.log('- Email:', user.email);
     console.log('- Name:', user.name);
     console.log('- Active:', user.isActive);
     console.log('- Roles:');
-    
+
     if (user.roles && user.roles.length > 0) {
       user.roles.forEach((userRole, index) => {
         console.log(`  ${index + 1}. UserRole ID: ${userRole.id}`);
@@ -43,7 +43,7 @@ async function debugUserRoles() {
     } else {
       console.log('  No roles found for this user!');
     }
-    
+
     // Also check what roles exist in the system
     console.log('\n=== All Roles in System ===');
     const allRoles = await prisma.role.findMany();
@@ -55,7 +55,6 @@ async function debugUserRoles() {
       console.log(`   Active: ${role.estado || 'undefined'}`);
       console.log('   ---');
     });
-    
   } catch (error) {
     console.error('Error:', error);
   } finally {

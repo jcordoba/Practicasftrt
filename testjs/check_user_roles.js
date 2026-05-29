@@ -9,17 +9,17 @@ async function checkUserRoles() {
       include: {
         roles: {
           include: {
-            role: true
-          }
-        }
-      }
+            role: true,
+          },
+        },
+      },
     });
-    
+
     if (user) {
       console.log('User found:', user.email);
       console.log('User ID:', user.id);
       console.log('User roles:');
-      user.roles.forEach(userRole => {
+      user.roles.forEach((userRole) => {
         console.log('- Role ID:', userRole.role.id);
         console.log('- Role Name:', userRole.role.name);
         console.log('- Role Nombre:', userRole.role.nombre);

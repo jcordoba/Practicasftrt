@@ -18,7 +18,7 @@ export class PlacementService {
     }
 
     // Validar que tiene rol de estudiante
-    const hasStudentRole = student.roles.some((ur) => ur.role.nombre === 'ESTUDIANTE');
+    const hasStudentRole = student.roles.some((ur) => ur.role.nombre === 'STUDENT');
     if (!hasStudentRole) {
       throw new Error('El usuario no es un estudiante');
     }
@@ -103,7 +103,7 @@ export class PlacementService {
         programId: data.programId,
         startDate: data.startDate ? new Date(data.startDate) : term.startDate,
         endDate: data.endDate ? new Date(data.endDate) : term.endDate,
-        status: (data.status as string) || 'ACTIVE',
+        status: data.status || 'ACTIVE',
         assignedBy: assignedBy,
       },
       include: {

@@ -6,9 +6,9 @@ async function getOTP() {
   try {
     const otp = await prisma.otpCode.findFirst({
       where: { email: 'admin@sion.com' },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
-    
+
     if (otp) {
       console.log('Latest OTP:', otp.code);
       console.log('Expires at:', otp.expiresAt);

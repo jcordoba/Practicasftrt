@@ -52,10 +52,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           if (response.ok) {
             const data = await response.json();
+            console.log('[AuthContext Debug] API /auth/verify response:', data);
             setToken(storedToken);
             setUser(data.user);
+            console.log('[AuthContext Debug] User set to:', data.user);
           } else {
             // Token inválido, limpiar localStorage
+            console.log('[AuthContext Debug] Token inválido, status:', response.status);
             localStorage.removeItem('token');
           }
         } catch (error) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth, useAuthenticatedFetch } from '../../../contexts/AuthContext';
 import { useSafeRouter } from '../../../hooks/useSafeRouter';
 import UserDropdown from '../../../components/UserDropdown';
+import Select from '../../../components/Select';
 
 interface Term {
   id: string;
@@ -207,9 +208,9 @@ export default function Terms() {
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      ACTIVE: 'bg-green-100 text-green-800 border-green-300',
+      ACTIVE: 'bg-green-100 !text-white border-green-300',
       INACTIVE: 'bg-gray-100 text-gray-800 border-gray-300',
-      COMPLETED: 'bg-blue-100 text-blue-800 border-blue-300',
+      COMPLETED: 'bg-blue-100 !text-white border-blue-300',
     };
     const labels = {
       ACTIVE: 'Activo',
@@ -234,9 +235,12 @@ export default function Terms() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => safePush('/dashboard/coordinador')}
-            className="text-white hover:text-slate-300"
+            className="text-white hover:text-blue-200 transition flex items-center"
           >
-            ← Volver
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Volver
           </button>
           <h1 className="text-xl font-bold !text-white">Gestión de Términos Académicos</h1>
         </div>
@@ -272,32 +276,32 @@ export default function Terms() {
 
             <div>
               <label className="block !text-slate-900 font-bold mb-2">Áño Académico</label>
-              <select
+              <Select
+                label=""
                 value={filterYear}
                 onChange={(e) => setFilterYear(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Todos los años</option>
-                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: 'Todos los años' },
+                  ...Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((year) => ({ value: String(year), label: String(year) }))
+                ]}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+              />
             </div>
 
             <div>
               <label className="block !text-slate-900 font-bold mb-2">Estado</label>
-              <select
+              <Select
+                label=""
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Todos los estados</option>
-                <option value="ACTIVE">Activo</option>
-                <option value="INACTIVE">Inactivo</option>
-                <option value="COMPLETED">Completado</option>
-              </select>
+                options={[
+                  { value: '', label: 'Todos los estados' },
+                  { value: 'ACTIVE', label: 'Activo' },
+                  { value: 'INACTIVE', label: 'Inactivo' },
+                  { value: 'COMPLETED', label: 'Completado' }
+                ]}
+                className="w-full px-3 py-2 border border-gray-300 rounded-xl"
+              />
             </div>
 
             <button
@@ -345,31 +349,35 @@ export default function Terms() {
 
               <div>
                 <label className="block !text-slate-900 font-bold mb-2">Período Académico *</label>
-                <select
-                  value={formData.academicPeriod}
+                <Select
+                  label=""
+                  value={String(formData.academicPeriod)}
                   onChange={(e) =>
                     setFormData({ ...formData, academicPeriod: parseInt(e.target.value) })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 !text-slate-900"
+                  options={[
+                    { value: '1', label: 'Primer Semestre' },
+                    { value: '2', label: 'Segundo Semestre' }
+                  ]}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl !text-slate-900"
                   required
-                >
-                  <option value="1">Primer Semestre</option>
-                  <option value="2">Segundo Semestre</option>
-                </select>
+                />
               </div>
 
               <div>
                 <label className="block !text-slate-900 font-bold mb-2">Estado *</label>
-                <select
+                <Select
+                  label=""
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 !text-slate-900"
+                  options={[
+                    { value: 'ACTIVE', label: 'Activo' },
+                    { value: 'INACTIVE', label: 'Inactivo' },
+                    { value: 'COMPLETED', label: 'Completado' }
+                  ]}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl !text-slate-900"
                   required
-                >
-                  <option value="ACTIVE">Activo</option>
-                  <option value="INACTIVE">Inactivo</option>
-                  <option value="COMPLETED">Completado</option>
-                </select>
+                />
               </div>
 
               <div>

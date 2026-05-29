@@ -1,5 +1,6 @@
 import { PracticeService } from '../services/practice.service';
 import { Request, Response } from 'express';
+import { PracticeStatus } from '@prisma/client';
 
 export class PracticeController {
   constructor(private readonly practiceService: PracticeService) {}
@@ -24,8 +25,13 @@ export class PracticeController {
    *             example: { "id": "pr1", "name": "Práctica 1", "description": "Descripción", "programId": "progA" }
    */
   async create(req: Request, res: Response) {
-    const practice = await this.practiceService.create(req.body);
-    res.status(201).json(practice);
+    try {
+      const practice = await this.practiceService.create(req.body);
+      res.status(201).json(practice);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al crear la práctica';
+      res.status(400).json({ message });
+    }
   }
 
   /**
@@ -71,11 +77,12 @@ export class PracticeController {
    */
   async findAll(req: Request, res: Response) {
     const { studentId, tutorId, teacherId, status } = req.query;
+    const practiceStatus = typeof status === 'string' ? (status as PracticeStatus) : undefined;
     const practices = await this.practiceService.findAll({
       studentId: studentId as string,
       tutorId: tutorId as string,
       teacherId: teacherId as string,
-      status: status as string,
+      status: practiceStatus,
     });
     res.json(practices);
   }
@@ -117,6 +124,25 @@ export class PracticeController {
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: 'Error al obtener estadísticas', error });
+    }
+  }
+
+  /**
+   * Get grades for the authenticated student
+   */
+  async getMyGrades(req: Request, res: Response) {
+    try {
+      const authReq = req as { user?: { id?: string } };
+      const userId = authReq.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: 'Usuario no autenticado' });
+      }
+
+      const grades = await this.practiceService.getStudentGrades(userId);
+      res.json(grades);
+    } catch (error) {
+      res.status(500).json({ message: 'Error al obtener calificaciones', error });
     }
   }
 
@@ -179,10 +205,15 @@ export class PracticeController {
    *         description: Práctica no encontrada
    */
   async update(req: Request, res: Response) {
-    const { id } = req.params;
-    const practice = await this.practiceService.update(id, req.body);
-    if (!practice) return res.status(404).json({ message: 'Practice not found' });
-    res.json(practice);
+    try {
+      const { id } = req.params;
+      const practice = await this.practiceService.update(id, req.body);
+      if (!practice) return res.status(404).json({ message: 'Practice not found' });
+      res.json(practice);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al actualizar la práctica';
+      res.status(400).json({ message });
+    }
   }
 
   /**

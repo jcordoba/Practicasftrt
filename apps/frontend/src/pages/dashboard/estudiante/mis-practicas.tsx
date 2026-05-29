@@ -7,21 +7,26 @@ import UserDropdown from "../../../components/UserDropdown";
 
 interface Practice {
   id: string;
-  name: string;
+  name?: string;
+  nombre?: string;
   description: string;
   institution: string;
   startDate: string;
   endDate: string;
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   hours: number;
+  tutorId?: string | null;
+  teacherId?: string | null;
   tutor?: {
     id: string;
-    name: string;
+    name?: string;
+    nombre?: string;
     email: string;
   };
   teacher?: {
     id: string;
-    name: string;
+    name?: string;
+    nombre?: string;
     email: string;
   };
 }
@@ -42,10 +47,10 @@ const statusLabels = {
 };
 
 const statusColors = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  IN_PROGRESS: 'bg-blue-100 text-blue-800',
-  COMPLETED: 'bg-green-100 text-green-800',
-  CANCELLED: 'bg-red-100 text-red-800'
+  PENDING: 'bg-yellow-100 !text-yellow-900 font-semibold px-3 py-1.5 rounded-lg text-xs',
+  IN_PROGRESS: 'bg-blue-600 !text-white font-semibold px-3 py-1.5 rounded-lg text-xs shadow-sm',
+  COMPLETED: 'bg-green-600 !text-white font-semibold px-3 py-1.5 rounded-lg text-xs shadow-sm',
+  CANCELLED: 'bg-red-600 !text-white font-semibold px-3 py-1.5 rounded-lg text-xs shadow-sm'
 };
 
 export default function MisPracticasEstudiantePage() {
@@ -122,11 +127,9 @@ export default function MisPracticasEstudiantePage() {
       
       const data = await response.json();
       setPractices(data);
-      
-      // Cargar reportes para cada práctica
-      for (const practice of data) {
-        await fetchPracticeReports(practice.id);
-      }
+
+      // Cargar reportes en paralelo para mejorar tiempos de render
+      await Promise.all((data as Practice[]).map((practice) => fetchPracticeReports(practice.id)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -195,17 +198,19 @@ export default function MisPracticasEstudiantePage() {
   return (
     <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Enhanced Header with glassmorphism effect */}
-      <header className="w-full bg-blue-900 bg-opacity-90 backdrop-blur-lg text-white py-4 px-6 flex justify-between items-center sticky top-0 z-40 shadow-md">
-        <div className="flex items-center gap-4">
-          <SafeLink href="/dashboard/estudiante" className="text-white hover:text-blue-200 flex items-center">
-            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      <header className="w-full bg-blue-900 text-white py-5 px-8 flex justify-between items-center sticky top-0 z-40 shadow-lg gap-4 border-b border-blue-800">
+        <div className="flex items-center gap-4 min-w-0 flex-1">
+          <SafeLink href="/dashboard/estudiante" className="text-white hover:text-blue-200 flex items-center flex-shrink-0">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Volver al Dashboard
+            Volver
           </SafeLink>
-          <h1 className="text-xl font-bold">SION Prácticas FTR</h1>
+          <h1 className="text-lg md:text-xl font-bold truncate">SION Prácticas FTR</h1>
         </div> 
-        <UserDropdown />
+        <div className="flex-shrink-0">
+          <UserDropdown />
+        </div>
       </header>
       
       <main className="flex flex-col items-center w-full max-w-6xl mt-8 px-4 pb-12">
@@ -234,57 +239,65 @@ export default function MisPracticasEstudiantePage() {
         {/* Resumen Estadístico */}
         {practices.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full mb-6">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+            <div className="bg-white border-l-4 border-blue-600 rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium opacity-90">Total Prácticas</p>
-                  <p className="text-3xl font-bold mt-1">{practices.length}</p>
+                  <p className="text-sm font-semibold !text-slate-600 uppercase tracking-wide">Total Prácticas</p>
+                  <p className="text-3xl font-bold !text-slate-900 mt-2">{practices.length}</p>
                 </div>
-                <svg className="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
+                <div className="bg-white border-2 border-blue-600 p-3 rounded-full">
+                  <svg className="w-8 h-8 !text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+            <div className="bg-white border-l-4 border-green-600 rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium opacity-90">Activas</p>
-                  <p className="text-3xl font-bold mt-1">
+                  <p className="text-sm font-semibold !text-slate-600 uppercase tracking-wide">Activas</p>
+                  <p className="text-3xl font-bold !text-slate-900 mt-2">
                     {practices.filter(p => p.status === 'IN_PROGRESS').length}
                   </p>
                 </div>
-                <svg className="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+                <div className="bg-white border-2 border-green-600 p-3 rounded-full">
+                  <svg className="w-8 h-8 !text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+            <div className="bg-white border-l-4 border-purple-600 rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium opacity-90">Horas Totales</p>
-                  <p className="text-3xl font-bold mt-1">
+                  <p className="text-sm font-semibold !text-slate-600 uppercase tracking-wide">Horas Totales</p>
+                  <p className="text-3xl font-bold !text-slate-900 mt-2">
                     {practices.reduce((sum, p) => sum + getTotalHours(p.id), 0)}h
                   </p>
                 </div>
-                <svg className="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <div className="bg-white border-2 border-purple-600 p-3 rounded-full">
+                  <svg className="w-8 h-8 !text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
+            <div className="bg-white border-l-4 border-orange-600 rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium opacity-90">Total Reportes</p>
-                  <p className="text-3xl font-bold mt-1">
+                  <p className="text-sm font-semibold !text-slate-600 uppercase tracking-wide">Total Reportes</p>
+                  <p className="text-3xl font-bold !text-slate-900 mt-2">
                     {Object.values(reports).reduce((sum, arr) => sum + arr.length, 0)}
                   </p>
                 </div>
-                <svg className="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+                <div className="bg-white border-2 border-orange-600 p-3 rounded-full">
+                  <svg className="w-8 h-8 !text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
@@ -311,60 +324,65 @@ export default function MisPracticasEstudiantePage() {
           </div>
           
           {showReportForm && selectedPractice && (
-            <div className="mb-6 p-6 border rounded-2xl bg-gray-50">
+            <div className="mb-6 border border-gray-200 rounded-xl bg-gray-50 p-6">
               <h3 className="text-xl font-bold mb-4 !text-black">Crear Reporte de Actividades</h3>
               <form onSubmit={handleCreateReport} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1 !text-black">Fecha</label>
+                  <label className="block text-sm font-medium mb-2 !text-black">Fecha</label>
                   <input
                     type="date"
                     value={reportForm.date}
                     onChange={(e) => setReportForm({...reportForm, date: e.target.value})}
-                    className="w-full p-3 border rounded-lg !text-black bg-white"
+                    className="w-full p-3 border border-gray-300 rounded-lg !text-black bg-white focus:border-blue-500 focus:outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 !text-black">Horas</label>
+                  <label className="block text-sm font-medium mb-2 !text-black">Horas</label>
                   <input
                     type="number"
                     value={reportForm.hours}
-                    onChange={(e) => setReportForm({...reportForm, hours: parseInt(e.target.value)})}
-                    className="w-full p-3 border rounded-lg !text-black bg-white"
+                    onChange={(e) =>
+                      setReportForm({
+                        ...reportForm,
+                        hours: Number.isNaN(Number(e.target.value)) ? 0 : Number(e.target.value),
+                      })
+                    }
+                    className="w-full p-3 border border-gray-300 rounded-lg !text-black bg-white focus:border-blue-500 focus:outline-none"
                     min="1"
                     max="12"
                     required
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-1 !text-black">Actividades Realizadas</label>
+                  <label className="block text-sm font-medium mb-2 !text-black">Actividades Realizadas</label>
                   <textarea
                     value={reportForm.activities}
                     onChange={(e) => setReportForm({...reportForm, activities: e.target.value})}
-                    className="w-full p-3 border rounded-lg !text-black bg-white"
+                    className="w-full p-3 border border-gray-300 rounded-lg !text-black bg-white focus:border-blue-500 focus:outline-none"
                     rows={4}
                     required
                     placeholder="Describe las actividades realizadas durante esta jornada..."
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-1 !text-black">Observaciones</label>
+                  <label className="block text-sm font-medium mb-2 !text-black">Observaciones</label>
                   <textarea
                     value={reportForm.observations}
                     onChange={(e) => setReportForm({...reportForm, observations: e.target.value})}
-                    className="w-full p-3 border rounded-lg !text-black bg-white"
+                    className="w-full p-3 border border-gray-300 rounded-lg !text-black bg-white focus:border-blue-500 focus:outline-none"
                     rows={3}
                     placeholder="Observaciones adicionales, aprendizajes, dificultades..."
                   />
                 </div>
                 <div className="md:col-span-2 flex gap-3">
-                  <Button type="submit" className="bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:bg-blue-800 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out font-semibold shadow-md rounded-lg px-4 py-2">
+                  <Button type="submit" className="bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:bg-blue-800 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out font-semibold shadow-md rounded-lg px-4 py-2 !text-white">
                     Crear Reporte
                   </Button>
                   <Button 
                     type="button" 
                     onClick={() => setShowReportForm(false)}
-                    className="bg-gray-500 hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 active:bg-gray-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out font-semibold shadow-md rounded-lg px-4 py-2"
+                    className="bg-gray-400 hover:bg-gray-500 focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 active:bg-gray-600 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out font-semibold shadow-md rounded-lg px-4 py-2 !text-white"
                   >
                     Cancelar
                   </Button>
@@ -373,107 +391,130 @@ export default function MisPracticasEstudiantePage() {
             </div>
           )}
           
-          <div className="overflow-x-auto rounded-xl border border-gray-200">
-            <table className="w-full text-left">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="py-4 px-6 !text-black font-bold text-base">Práctica</th>
-                  <th className="py-4 px-6 !text-black font-bold text-base">Institución</th>
-                  <th className="py-4 px-6 !text-black font-bold text-base">Estado</th>
-                  <th className="py-4 px-6 !text-black font-bold text-base">Progreso</th>
-                  <th className="py-4 px-6 !text-black font-bold text-base">Fechas</th>
-                  <th className="py-4 px-6 !text-black font-bold text-base">Supervisores</th>
-                  <th className="py-4 px-6 !text-black font-bold text-base">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {practices.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-8 !text-black">
-                      No tienes prácticas asignadas
-                    </td>
-                  </tr>
-                ) : (
-                  practices.map((practice) => {
-                    const totalHours = getTotalHours(practice.id);
-                    const progressPercentage = Math.min((totalHours / practice.hours) * 100, 100);
-                    
-                    return (
-                      <tr key={practice.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-150">
-                        <td className="py-4 px-6">
-                          <div>
-                            <div className="font-bold !text-black">{practice.name}</div>
-                            <div className="text-sm !text-gray-600">{practice.description}</div>
+          {practices.length === 0 ? (
+              <div className="text-center py-12 bg-white border rounded-xl">
+                <svg className="w-12 h-12 mx-auto mb-4 !text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 00 6.586 13H4" />
+                </svg>
+                <p className="!text-gray-600 text-lg">No tienes prácticas asignadas</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {practices.map((practice) => {
+                  const totalHours = getTotalHours(practice.id);
+                  const progressPercentage = Math.min((totalHours / practice.hours) * 100, 100);
+                  const practiceName = practice.name || practice.nombre || 'Práctica sin nombre';
+                  const tutorName = practice.tutor?.name || practice.tutor?.nombre;
+                  const teacherName = practice.teacher?.name || practice.teacher?.nombre;
+                  
+                  // Determine border and icon color based on status
+                  const borderColorClass = {
+                    PENDING: 'border-l-4 border-yellow-600',
+                    IN_PROGRESS: 'border-l-4 border-blue-600',
+                    COMPLETED: 'border-l-4 border-green-600',
+                    CANCELLED: 'border-l-4 border-red-600'
+                  }[practice.status];
+                  
+                  const iconBgClass = {
+                    PENDING: 'bg-yellow-100 !text-yellow-600 border-yellow-600',
+                    IN_PROGRESS: 'bg-blue-100 !text-blue-600 border-blue-600',
+                    COMPLETED: 'bg-green-100 !text-green-600 border-green-600',
+                    CANCELLED: 'bg-red-100 !text-red-600 border-red-600'
+                  }[practice.status];
+                  
+                  return (
+                    <div key={practice.id} className={`bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden ${borderColorClass}`}>
+                      <div className="p-6">
+                        {/* Header with title and status */}
+                        <div className="mb-5">
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="font-bold !text-black text-lg flex-1 pr-2 leading-tight">{practiceName}</h4>
                           </div>
-                        </td>
-                        <td className="py-4 px-6 !text-black">{practice.institution}</td>
-                        <td className="py-4 px-6">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[practice.status]}`}>
+                          <p className="text-xs font-semibold !text-slate-600 uppercase tracking-wide">{practice.institution}</p>
+                          {practice.description && (
+                            <p className="text-xs !text-gray-600 mt-1">{practice.description}</p>
+                          )}
+                        </div>
+
+                        {/* Status badge */}
+                        <div className="mb-5 flex items-center">
+                          <span className={`inline-block transition-all duration-200 ${statusColors[practice.status]}`}>
                             {statusLabels[practice.status]}
                           </span>
-                        </td>
-                        <td className="py-4 px-6">
-                          <div className="w-full">
-                            <div className="flex justify-between text-sm mb-1 !text-black">
-                              <span>{totalHours}h / {practice.hours}h</span>
-                              <span>{Math.round(progressPercentage)}%</span>
+                        </div>
+
+                        {/* Progress bar and hours */}
+                        <div className="mb-5">
+                          <div className="flex justify-between text-xs mb-2">
+                            <span className="!text-black font-medium">{totalHours}h / {practice.hours}h</span>
+                            <span className="!text-slate-600 font-medium">{Math.round(progressPercentage)}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                              style={{ width: `${progressPercentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* Dates and supervisors */}
+                        <div className="mb-5 pb-5 border-b border-gray-200">
+                          <div className="grid grid-cols-2 gap-3 text-xs">
+                            <div>
+                              <p className="!text-slate-600 font-medium uppercase tracking-wide mb-1">Inicio</p>
+                              <p className="!text-black">{new Date(practice.startDate).toLocaleDateString()}</p>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2.5">
-                              <div 
-                                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
-                                style={{ width: `${progressPercentage}%` }}
-                              ></div>
+                            <div>
+                              <p className="!text-slate-600 font-medium uppercase tracking-wide mb-1">Fin</p>
+                              <p className="!text-black">{new Date(practice.endDate).toLocaleDateString()}</p>
                             </div>
                           </div>
-                        </td>
-                        <td className="py-4 px-6">
-                          <div className="text-sm !text-black">
-                            <div>Inicio: {new Date(practice.startDate).toLocaleDateString()}</div>
-                            <div>Fin: {new Date(practice.endDate).toLocaleDateString()}</div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6">
-                          <div className="text-sm !text-black">
-                            {practice.tutor && (
-                              <div>Tutor: {practice.tutor.name}</div>
-                            )}
-                            {practice.teacher && (
-                              <div>Docente: {practice.teacher.name}</div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-4 px-6">
-                          <div className="flex gap-2">
+                          {(tutorName || teacherName) && (
+                            <div className="grid grid-cols-2 gap-3 text-xs mt-3">
+                              {tutorName && (
+                                <div>
+                                  <p className="!text-slate-600 font-medium uppercase tracking-wide mb-1">Tutor</p>
+                                  <p className="!text-black truncate">{tutorName}</p>
+                                </div>
+                              )}
+                              {teacherName && (
+                                <div>
+                                  <p className="!text-slate-600 font-medium uppercase tracking-wide mb-1">Docente</p>
+                                  <p className="!text-black truncate">{teacherName}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Action buttons */}
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={() => {
+                              setSelectedPractice(practice.id);
+                            }}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:bg-blue-800 hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out text-xs px-3 py-2 font-semibold shadow-sm rounded-md !text-white"
+                          >
+                            Ver
+                          </Button>
+                          {practice.status === 'IN_PROGRESS' && (
                             <Button 
                               onClick={() => {
                                 setSelectedPractice(practice.id);
-                                // Aquí podrías abrir un modal con detalles
+                                setShowReportForm(true);
                               }}
-                              className="bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:bg-blue-800 hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out text-xs px-3 py-1.5 font-semibold shadow-sm rounded-md"
-                              aria-label={`Ver detalles de ${practice.name}`}
+                              className="flex-1 bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 active:bg-green-800 hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out text-xs px-3 py-2 font-semibold shadow-sm rounded-md !text-white"
                             >
-                              Ver
+                              Reportar
                             </Button>
-                            {practice.status === 'IN_PROGRESS' && (
-                              <Button 
-                                onClick={() => {
-                                  setSelectedPractice(practice.id);
-                                  setShowReportForm(true);
-                                }}
-                                className="bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 active:bg-green-800 hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 ease-in-out text-xs px-3 py-1.5 font-semibold shadow-sm rounded-md"
-                              >
-                                Reportar
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           
           {selectedPractice && reports[selectedPractice] && reports[selectedPractice].length > 0 && (
             <div className="mt-8">
@@ -485,18 +526,18 @@ export default function MisPracticasEstudiantePage() {
               </h3>
               <div className="grid gap-4">
                 {reports[selectedPractice].map((report) => (
-                  <div key={report.id} className="border rounded-xl p-5 bg-gray-50 hover:bg-gray-100 transition-colors duration-150">
+                  <div key={report.id} className="border border-gray-200 rounded-xl p-5 bg-white hover:shadow-md transition-all duration-200">
                     <div className="flex justify-between items-start mb-3">
-                      <div className="font-bold !text-black">
-                        {new Date(report.date).toLocaleDateString()} - {report.hours} horas
+                      <div className="font-semibold !text-black text-sm">
+                        {new Date(report.date).toLocaleDateString()} - <span className="text-blue-600">{report.hours} horas</span>
                       </div>
                     </div>
-                    <div className="text-base !text-black mb-3">
-                      <strong className="block mb-1">Actividades:</strong> {report.activities}
+                    <div className="text-sm !text-gray-700 mb-3">
+                      <strong className="block mb-1 !text-black">Actividades:</strong> {report.activities}
                     </div>
                     {report.observations && (
-                      <div className="text-base !text-black">
-                        <strong className="block mb-1">Observaciones:</strong> {report.observations}
+                      <div className="text-sm !text-gray-700">
+                        <strong className="block mb-1 !text-black">Observaciones:</strong> {report.observations}
                       </div>
                     )}
                   </div>
