@@ -4,6 +4,7 @@ import { useAuth, useAuthenticatedFetch } from "../../../contexts/AuthContext";
 import { useSafeRouter } from "../../../hooks/useSafeRouter";
 import SafeLink from "../../../components/SafeLink";
 import UserDropdown from "../../../components/UserDropdown";
+import Select from "../../../components/Select";
 
 interface Center {
   id: string;
@@ -169,7 +170,7 @@ export default function CentersPage() {
   return (
     <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
-      <header className="w-full bg-blue-900 bg-opacity-90 backdrop-blur-lg text-white py-4 px-6 flex justify-between items-center sticky top-0 z-40 shadow-md">
+      <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center sticky top-0 z-40 shadow-md">
         <div className="flex items-center space-x-4">
           <SafeLink href="/dashboard/coordinador">
             <button className="text-white hover:text-blue-200 transition flex items-center">
@@ -189,22 +190,24 @@ export default function CentersPage() {
         {!showForm && (
           <div className="mb-6 flex justify-between items-center">
             <div className="flex gap-4">
-              <select
+              <Select
+                label=""
                 value={filterTipo}
                 onChange={(e) => setFilterTipo(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Todos los tipos</option>
-                <option value="congregacion">Congregación</option>
-                <option value="institucion">Institución</option>
-              </select>
+                options={[
+                  { value: '', label: 'Todos los tipos' },
+                  { value: 'congregacion', label: 'Congregación' },
+                  { value: 'institucion', label: 'Institución' }
+                ]}
+                className="px-4 py-2 border border-gray-300 rounded-xl"
+              />
 
               <input
                 type="text"
                 placeholder="Filtrar por ciudad"
                 value={filterCiudad}
                 onChange={(e) => setFilterCiudad(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 !text-slate-900"
               />
             </div>
 
@@ -244,7 +247,7 @@ export default function CentersPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, nombre: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 !text-slate-900"
                   />
                 </div>
 
@@ -252,17 +255,19 @@ export default function CentersPage() {
                   <label className="block !text-gray-900 font-bold mb-2">
                     Tipo *
                   </label>
-                  <select
+                  <Select
+                    label=""
                     required
                     value={formData.tipo}
                     onChange={(e) =>
                       setFormData({ ...formData, tipo: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="congregacion">Congregación</option>
-                    <option value="institucion">Institución</option>
-                  </select>
+                    options={[
+                      { value: 'congregacion', label: 'Congregación' },
+                      { value: 'institucion', label: 'Institución' }
+                    ]}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-xl !text-slate-900"
+                  />
                 </div>
 
                 <div>
@@ -275,7 +280,7 @@ export default function CentersPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, direccion: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 !text-slate-900"
                   />
                 </div>
 
@@ -289,7 +294,7 @@ export default function CentersPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, ciudad: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 !text-slate-900"
                   />
                 </div>
 
@@ -303,7 +308,7 @@ export default function CentersPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, telefono: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 !text-slate-900"
                   />
                 </div>
 
@@ -320,7 +325,7 @@ export default function CentersPage() {
                         nombreContacto: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 !text-slate-900"
                   />
                 </div>
 
@@ -337,7 +342,7 @@ export default function CentersPage() {
                         correoContacto: e.target.value,
                       })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 !text-slate-900"
                   />
                 </div>
 
@@ -356,7 +361,7 @@ export default function CentersPage() {
                         capacidadMaxima: parseInt(e.target.value),
                       })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 !text-slate-900"
                   />
                 </div>
               </div>
@@ -371,7 +376,7 @@ export default function CentersPage() {
                     setFormData({ ...formData, observaciones: e.target.value })
                   }
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 !text-slate-900"
                 />
               </div>
 
@@ -423,11 +428,11 @@ export default function CentersPage() {
               {centers.map((center) => (
                 <tr key={center.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium !text-slate-900">
                       {center.nombre}
                     </div>
                     {center.nombreContacto && (
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm !text-slate-500">
                         {center.nombreContacto}
                       </div>
                     )}
@@ -436,45 +441,47 @@ export default function CentersPage() {
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         center.tipo === "congregacion"
-                          ? "bg-blue-100 text-blue-800"
+                          ? "bg-blue-100 !text-white"
                           : "bg-purple-100 text-purple-800"
                       }`}
                     >
                       {center.tipo}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm !text-slate-900">
                     {center.ciudad || "-"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm !text-slate-900">
                     {center.capacidadDisponible} / {center.capacidadMaxima}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         center.estado === "ACTIVO"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
+                          ? "bg-green-100 !text-white"
+                          : "bg-red-100 !text-white"
                       }`}
                     >
                       {center.estado}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => handleEdit(center)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      Editar
-                    </button>
-                    {center.estado === "ACTIVO" && (
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleDelete(center.id)}
-                        className="text-red-600 hover:text-red-900"
+                        onClick={() => handleEdit(center)}
+                        className="bg-blue-600 hover:bg-blue-700 !text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors"
                       >
-                        Desactivar
+                        Editar
                       </button>
-                    )}
+                      {center.estado === "ACTIVO" && (
+                        <button
+                          onClick={() => handleDelete(center.id)}
+                          className="bg-red-600 hover:bg-red-700 !text-white px-4 py-2 rounded-md text-sm font-semibold transition-colors"
+                        >
+                          Desactivar
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -482,7 +489,7 @@ export default function CentersPage() {
           </table>
 
           {centers.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 !text-slate-500">
               No hay centros registrados. Cree uno nuevo.
             </div>
           )}

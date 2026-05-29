@@ -11,6 +11,15 @@ interface DashboardStats {
   pendingReports: number;
 }
 
+interface PracticeSummary {
+  id: string;
+  name?: string;
+  nombre?: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  updatedAt?: string;
+  reports?: Array<{ id: string }>;
+}
+
 export default function EstudianteDashboard() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const authenticatedFetch = useAuthenticatedFetch();
@@ -21,6 +30,7 @@ export default function EstudianteDashboard() {
     pendingReports: 0
   });
   const [loading, setLoading] = useState(true);
+  const [recentPractices, setRecentPractices] = useState<PracticeSummary[]>([]);
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -45,22 +55,36 @@ export default function EstudianteDashboard() {
 
   const fetchDashboardStats = async () => {
     try {
-      const userId = localStorage.getItem('userId');
-      
-      const response = await authenticatedFetch(`/api/practices?studentId=${userId}`);
-      
-      if (response.ok) {
-        const practices = await response.json();
-        const activePractices = practices.filter((p: any) => p.status === 'IN_PROGRESS').length;
-        const totalHours = practices.reduce((sum: number, p: any) => sum + (p.completedHours || 0), 0);
-        
-        setStats({
-          totalPractices: practices.length,
-          activePractices,
-          completedHours: totalHours,
-          pendingReports: 0 // Se calculará cuando implementemos reportes
-        });
+      const [statsResponse, practicesResponse] = await Promise.all([
+        authenticatedFetch('/api/practices/my/stats'),
+        authenticatedFetch('/api/practices/my'),
+      ]);
+
+      if (!statsResponse.ok || !practicesResponse.ok) {
+        throw new Error('No se pudo cargar el dashboard de estudiante');
       }
+
+      const statsData = await statsResponse.json();
+      const practices: PracticeSummary[] = await practicesResponse.json();
+
+      const pendingReports = practices.filter(
+        (practice) =>
+          practice.status === 'IN_PROGRESS' && (!practice.reports || practice.reports.length === 0),
+      ).length;
+
+      const sortedRecent = [...practices].sort((a, b) => {
+        const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return bTime - aTime;
+      });
+
+      setStats({
+        totalPractices: statsData.totalPractices || 0,
+        activePractices: statsData.activePractices || 0,
+        completedHours: statsData.totalHoursLogged || 0,
+        pendingReports,
+      });
+      setRecentPractices(sortedRecent.slice(0, 3));
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
     } finally {
@@ -176,11 +200,13 @@ export default function EstudianteDashboard() {
   return (
     <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Enhanced Header with glassmorphism effect */}
-      <header className="w-full bg-blue-900 bg-opacity-90 backdrop-blur-lg text-white py-4 px-6 flex justify-between items-center sticky top-0 z-40 shadow-md">
-        <div className="flex items-center">
-          <h1 className="text-xl font-bold">SION Prácticas FTR</h1>
+      <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center sticky top-0 z-40 shadow-md gap-4">
+        <div className="flex items-center min-w-0 flex-1">
+          <h1 className="text-lg md:text-xl font-bold truncate">SION Prácticas FTR</h1>
         </div>
-        <UserDropdown />
+        <div className="flex-shrink-0">
+          <UserDropdown />
+        </div>
       </header>
       
       <main className="flex flex-col items-center w-full max-w-6xl mt-8 px-4 pb-12">
@@ -244,7 +270,7 @@ export default function EstudianteDashboard() {
             Acciones Rápidas
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <ActionCard 
               href="/dashboard/estudiante/mis-practicas"
               title="Mis Prácticas"
@@ -254,13 +280,15 @@ export default function EstudianteDashboard() {
             />
             
             <ActionCard 
-              title="Crear Reporte"
-              description="Registrar actividades"
-              color="border-green-500 hover:border-green-600"
-              icon="📝"
+              href="/dashboard/estudiante/horarios"
+              title="Mis Horarios"
+              description="Calendarios de prácticas"
+              color="border-teal-500 hover:border-teal-600"
+              icon="📅"
             />
             
             <ActionCard 
+              href="/dashboard/estudiante/mi-progreso"
               title="Mi Progreso"
               description="Ver estadísticas"
               color="border-purple-500 hover:border-purple-600"
@@ -285,25 +313,39 @@ export default function EstudianteDashboard() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:bg-blue-50 transition-colors duration-200">
-                <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0" aria-hidden />
-                <div className="flex-1">
-                  <div className="font-semibold !text-black">
-                    Práctica iniciada
+              {recentPractices.length === 0 && (
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                  <div className="font-semibold !text-black">Sin actividad reciente</div>
+                  <div className="text-sm !text-black mt-1">
+                    Cuando tengas prácticas asignadas aparecerán aquí.
                   </div>
-                  <div className="text-sm !text-black mt-1">Hace 2 días</div>
                 </div>
-              </div>
+              )}
 
-              <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:bg-green-50 transition-colors duration-200">
-                <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0" aria-hidden />
-                <div className="flex-1">
-                  <div className="font-semibold !text-black">
-                    Reporte enviado
+              {recentPractices.map((practice) => {
+                const practiceName = practice.name || practice.nombre || 'Práctica sin nombre';
+                const statusLabel =
+                  practice.status === 'IN_PROGRESS'
+                    ? 'En progreso'
+                    : practice.status === 'COMPLETED'
+                    ? 'Completada'
+                    : practice.status === 'PENDING'
+                    ? 'Pendiente'
+                    : 'Cancelada';
+
+                return (
+                  <div
+                    key={practice.id}
+                    className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:bg-blue-50 transition-colors duration-200"
+                  >
+                    <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0" aria-hidden />
+                    <div className="flex-1">
+                      <div className="font-semibold !text-black">{practiceName}</div>
+                      <div className="text-sm !text-black mt-1">Estado: {statusLabel}</div>
+                    </div>
                   </div>
-                  <div className="text-sm !text-black mt-1">Hace 1 semana</div>
-                </div>
-              </div>
+                );
+              })}
             </div>
           )}
         </div>

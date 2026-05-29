@@ -110,6 +110,7 @@ model Program {
 model Union {
   id                  String        @id @default(cuid())
   nombre              String
+  descripcion         String?
   estado              String        @default("ACTIVO")
   fecha_creacion      DateTime      @default(now())
   fecha_actualizacion DateTime      @updatedAt
@@ -119,6 +120,7 @@ model Union {
 model Association {
   id                  String     @id @default(cuid())
   nombre              String
+  descripcion         String?
   estado              String     @default("ACTIVO")
   fecha_creacion      DateTime   @default(now())
   fecha_actualizacion DateTime   @updatedAt
@@ -130,6 +132,7 @@ model Association {
 model District {
   id                  String         @id @default(cuid())
   nombre              String
+  descripcion         String?
   estado              String         @default("ACTIVO")
   fecha_creacion      DateTime       @default(now())
   fecha_actualizacion DateTime       @updatedAt
@@ -141,6 +144,7 @@ model District {
 model Congregation {
   id                  String   @id @default(cuid())
   nombre              String
+  descripcion         String?
   estado              String   @default("ACTIVO")
   fecha_creacion      DateTime @default(now())
   fecha_actualizacion DateTime @updatedAt

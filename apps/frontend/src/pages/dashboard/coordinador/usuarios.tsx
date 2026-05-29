@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth, useAuthenticatedFetch } from "../../../contexts/AuthContext";
 import SafeLink from "../../../components/SafeLink";
 import UserDropdown from "../../../components/UserDropdown";
+import Select from "../../../components/Select";
 
 interface User {
   id: number;
@@ -25,6 +26,7 @@ interface Role {
 }
 
 export default function UsuariosPage() {
+  const { loading: authLoading, isAuthenticated } = useAuth();
   const authenticatedFetch = useAuthenticatedFetch();
 
   const [users, setUsers] = useState<User[]>([]);
@@ -49,9 +51,16 @@ export default function UsuariosPage() {
   });
 
   useEffect(() => {
+    if (authLoading) return;
+
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+
     fetchUsers();
     fetchRoles();
-  }, []);
+  }, [authLoading, isAuthenticated]);
 
   const fetchUsers = async () => {
     try {
@@ -229,8 +238,11 @@ export default function UsuariosPage() {
       {/* Header */}
       <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <SafeLink href="/dashboard/coordinador" className="text-white hover:text-blue-200">
-            ← Volver al Dashboard
+          <SafeLink href="/dashboard/coordinador" className="text-white hover:text-blue-200 transition flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Volver
           </SafeLink>
           <h1 className="text-xl font-bold">Gestión de Usuarios</h1>
         </div>
@@ -314,30 +326,32 @@ export default function UsuariosPage() {
             {/* Filtro por rol */}
             <div>
               <label className="block !text-slate-800 font-semibold mb-2">Rol</label>
-              <select
+              <Select
+                label=""
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                className="w-full p-3 border border-slate-300 rounded focus:outline-none focus:border-blue-500 !text-slate-900"
-              >
-                <option value="all">Todos los roles</option>
-                {roles.map(role => (
-                  <option key={role.id} value={role.nombre}>{role.nombre}</option>
-                ))}
-              </select>
+                options={[
+                  { value: 'all', label: 'Todos los roles' },
+                  ...roles.map(role => ({ value: role.nombre, label: role.nombre }))
+                ]}
+                className="w-full p-3 border border-slate-300 rounded-xl !text-slate-900"
+              />
             </div>
 
             {/* Filtro por estado */}
             <div>
               <label className="block !text-slate-800 font-semibold mb-2">Estado</label>
-              <select
+              <Select
+                label=""
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full p-3 border border-slate-300 rounded focus:outline-none focus:border-blue-500 !text-slate-900"
-              >
-                <option value="all">Todos</option>
-                <option value="ACTIVO">Activos</option>
-                <option value="INACTIVO">Inactivos</option>
-              </select>
+                options={[
+                  { value: 'all', label: 'Todos' },
+                  { value: 'ACTIVO', label: 'Activos' },
+                  { value: 'INACTIVO', label: 'Inactivos' }
+                ]}
+                className="w-full p-3 border border-slate-300 rounded-xl !text-slate-900"
+              />
             </div>
           </div>
         </div>
@@ -357,6 +371,7 @@ export default function UsuariosPage() {
                   <tr className="bg-slate-100">
                     <th className="px-4 py-3 text-left !text-slate-900 font-bold">Nombre</th>
                     <th className="px-4 py-3 text-left !text-slate-900 font-bold">Email</th>
+                    <th className="px-4 py-3 text-left !text-slate-900 font-bold">ID Usuario</th>
                     <th className="px-4 py-3 text-left !text-slate-900 font-bold">Roles</th>
                     <th className="px-4 py-3 text-left !text-slate-900 font-bold">Estado</th>
                     <th className="px-4 py-3 text-left !text-slate-900 font-bold">Acciones</th>
@@ -367,6 +382,25 @@ export default function UsuariosPage() {
                     <tr key={user.id} className="border-b border-slate-200 hover:bg-slate-50">
                       <td className="px-4 py-3 !text-slate-800 font-semibold">{user.nombre || "Sin nombre"}</td>
                       <td className="px-4 py-3 !text-slate-800">{user.email}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <code className="text-xs bg-gray-100 px-2 py-1 rounded !text-slate-700 font-mono">
+                            {String(user.id).substring(0, 8)}...
+                          </code>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(String(user.id));
+                              alert('ID copiado al portapapeles');
+                            }}
+                            className="bg-gray-200 hover:bg-gray-300 !text-slate-800 p-1 rounded transition"
+                            title="Copiar ID completo"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-1">
                           {user.roles.map((r, idx) => (

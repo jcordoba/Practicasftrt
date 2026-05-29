@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import SafeLink from '../../components/SafeLink';
+import Select from '../../components/Select';
 import { useAuth, useAuthenticatedFetch } from '../../contexts/AuthContext';
 
 // Interfaces para el dashboard SION
@@ -168,7 +169,7 @@ export default function SionMobileDashboard() {
         { id: '4', title: 'Reportes', icon: '📊', color: 'purple', href: '/dashboard/docente/reportes' }
       ],
       estudiante: [
-        { id: '1', title: 'Mis Prácticas', icon: '📚', color: 'blue', href: '/dashboard/estudiante/practicas', count: 2 },
+        { id: '1', title: 'Mis Prácticas', icon: '📚', color: 'blue', href: '/dashboard/estudiante/mis-practicas', count: 2 },
         { id: '2', title: 'Calificaciones', icon: '📝', color: 'green', href: '/dashboard/estudiante/calificaciones' },
         { id: '3', title: 'Horarios', icon: '📅', color: 'orange', href: '/dashboard/estudiante/horarios' },
         { id: '4', title: 'Perfil', icon: '👤', color: 'purple', href: '/dashboard/estudiante/perfil' }
@@ -324,13 +325,13 @@ export default function SionMobileDashboard() {
               <p className="!text-slate-600 mb-4">Sistema Integral de Organización y Notas</p>
               <div className="flex justify-center space-x-4">
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  selectedRole === 'coordinador' ? 'bg-blue-100 text-blue-800' :
-                  selectedRole === 'docente' ? 'bg-green-100 text-green-800' :
+                  selectedRole === 'coordinador' ? 'bg-blue-100 !text-white' :
+                  selectedRole === 'docente' ? 'bg-green-100 !text-white' :
                   'bg-purple-100 text-purple-800'
                 }`}>
                   {selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)}
                 </span>
-                <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="bg-yellow-100 !text-white px-3 py-1 rounded-full text-sm font-medium">
                   Mobile Dashboard
                 </span>
               </div>
@@ -466,7 +467,7 @@ export default function SionMobileDashboard() {
   return (
     <div className="min-h-screen bg-slate-100">
       {/* Header Mobile-First */}
-      <header className="bg-blue-900 text-white py-3 px-4 shadow-lg sticky top-0 z-50">
+      <header className="bg-blue-900 text-white py-4 px-8 shadow-lg sticky top-0 z-50">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <SafeLink href="/dashboard" className="text-white hover:text-blue-200">
@@ -476,15 +477,17 @@ export default function SionMobileDashboard() {
             <h1 className="text-lg font-bold">SION Mobile</h1>
           </div>
           <div className="flex items-center space-x-2">
-            <select 
-              value={selectedRole} 
+            <Select
+              label=""
+              value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value as any)}
-              className="bg-blue-800 text-white border border-blue-700 rounded px-2 py-1 text-sm"
-            >
-              <option value="coordinador">Coordinador</option>
-              <option value="docente">Docente</option>
-              <option value="estudiante">Estudiante</option>
-            </select>
+              options={[
+                { value: 'coordinador', label: 'Coordinador' },
+                { value: 'docente', label: 'Docente' },
+                { value: 'estudiante', label: 'Estudiante' }
+              ]}
+              className="bg-white !text-slate-900 border border-slate-300 rounded-xl px-2 py-1 text-sm min-w-[150px]"
+            />
             <button
               onClick={() => setEditMode(!editMode)}
               className={`p-2 rounded text-sm transition-colors ${
@@ -520,7 +523,7 @@ export default function SionMobileDashboard() {
                     onClick={() => togglePanelVisibility(panel.id)}
                     className={`px-2 py-1 rounded text-xs ${
                       panel.visible 
-                        ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                        ? 'bg-green-100 !text-white hover:bg-green-200' 
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >

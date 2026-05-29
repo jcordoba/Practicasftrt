@@ -29,13 +29,29 @@ router.post(
   },
 );
 
-router.get('/my/stats', rbacMiddleware(['ESTUDIANTE']), (req: Request, res: Response) => {
-  practiceController.getMyStats(req, res);
-});
+router.get(
+  '/my/stats',
+  rbacMiddleware(['ESTUDIANTE', 'ADMINISTRADOR_TECNICO', 'COORDINADOR_PRACTICAS']),
+  (req: Request, res: Response) => {
+    practiceController.getMyStats(req, res);
+  },
+);
 
-router.get('/my', rbacMiddleware(['ESTUDIANTE']), (req: Request, res: Response) => {
-  practiceController.findMy(req, res);
-});
+router.get(
+  '/my/grades',
+  rbacMiddleware(['ESTUDIANTE', 'ADMINISTRADOR_TECNICO', 'COORDINADOR_PRACTICAS']),
+  (req: Request, res: Response) => {
+    practiceController.getMyGrades(req, res);
+  },
+);
+
+router.get(
+  '/my',
+  rbacMiddleware(['ESTUDIANTE', 'ADMINISTRADOR_TECNICO', 'COORDINADOR_PRACTICAS']),
+  (req: Request, res: Response) => {
+    practiceController.findMy(req, res);
+  },
+);
 
 router.get(
   '/',
@@ -84,7 +100,13 @@ router.delete(
 // Rutas para reportes de prácticas
 router.post(
   '/:practiceId/reports',
-  rbacMiddleware(['ESTUDIANTE', 'DOCENTE', 'PASTOR']),
+  rbacMiddleware([
+    'ESTUDIANTE',
+    'DOCENTE',
+    'PASTOR',
+    'ADMINISTRADOR_TECNICO',
+    'COORDINADOR_PRACTICAS',
+  ]),
   async (req: Request, res: Response) => {
     try {
       const { practiceId } = req.params;
@@ -153,7 +175,13 @@ router.get(
 
 router.put(
   '/reports/:id',
-  rbacMiddleware(['ESTUDIANTE', 'DOCENTE', 'PASTOR']),
+  rbacMiddleware([
+    'ESTUDIANTE',
+    'DOCENTE',
+    'PASTOR',
+    'COORDINADOR_PRACTICAS',
+    'ADMINISTRADOR_TECNICO',
+  ]),
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;

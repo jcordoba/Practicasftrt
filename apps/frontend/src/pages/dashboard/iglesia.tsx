@@ -216,7 +216,7 @@ export default function IglesiaDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Enhanced Header with glassmorphism effect */}
-      <header className="w-full bg-blue-900 bg-opacity-90 backdrop-blur-lg text-white py-4 px-6 flex justify-between items-center sticky top-0 z-40 shadow-md">
+      <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center sticky top-0 z-40 shadow-md">
         <div className="flex items-center">
           <h1 className="text-xl font-bold">SION Prácticas FTR</h1>
         </div>
@@ -344,10 +344,10 @@ export default function IglesiaDashboard() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
-                      <span className={`px-3 py-1 text-sm font-medium rounded-full !text-black ${
-                        student.estado === 'Activo' ? 'bg-green-500' :
-                        student.estado === 'Pendiente Validación' ? 'bg-yellow-500' :
-                        'bg-gray-100'
+                      <span className={`px-3 py-1 text-sm font-medium rounded-full border ${
+                        student.estado === 'Activo' ? 'bg-green-100 !text-white border-green-200' :
+                        student.estado === 'Pendiente Validación' ? 'bg-yellow-100 !text-white border-yellow-200' :
+                        'bg-gray-100 !text-slate-700 border-gray-200'
                       }`}>
                         {student.estado}
                       </span>

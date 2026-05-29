@@ -87,8 +87,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: zT924yhlrZplbblh
       POSTGRES_DB: practicasftr
-    # volumes:
-    #   - postgres_data:/var/lib/postgresql/data
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - network_public
 
@@ -96,5 +96,5 @@ networks:
   network_public:
     name: network_public
 
-# volumes:
-#   postgres_data:
+volumes:
+  postgres_data:

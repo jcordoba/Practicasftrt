@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import SafeLink from '../../../components/SafeLink';
+import Select from '../../../components/Select';
 import { useAuth, useAuthenticatedFetch } from '../../../contexts/AuthContext';
 
 // Interfaces para el sistema SVGA
@@ -64,6 +65,12 @@ export default function GruposSVGA() {
     }
   }, [authLoading, isAuthenticated, semester]);
 
+  useEffect(() => {
+    if (selectedGroup) {
+      calculateGradeStats(selectedGroup);
+    }
+  }, [selectedGroup]);
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -78,12 +85,6 @@ export default function GruposSVGA() {
   if (!isAuthenticated) {
     return null; // El AuthContext se encargará de redirigir
   }
-
-  useEffect(() => {
-    if (selectedGroup) {
-      calculateGradeStats(selectedGroup);
-    }
-  }, [selectedGroup]);
 
   const fetchGroups = async () => {
     try {
@@ -200,17 +201,17 @@ export default function GruposSVGA() {
 
   const getGradeColor = (grade?: number) => {
     if (grade === undefined) return 'bg-gray-100 text-gray-500';
-    if (grade >= 4.5) return 'bg-green-100 text-green-800';
-    if (grade >= 3.5) return 'bg-blue-100 text-blue-800';
-    if (grade >= 3.0) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
+    if (grade >= 4.5) return 'bg-green-100 !text-white';
+    if (grade >= 3.5) return 'bg-blue-100 !text-white';
+    if (grade >= 3.0) return 'bg-yellow-100 !text-white';
+    return 'bg-red-100 !text-white';
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ACTIVO': return 'bg-green-100 text-green-800';
-      case 'INACTIVO': return 'bg-yellow-100 text-yellow-800';
-      case 'RETIRADO': return 'bg-red-100 text-red-800';
+      case 'ACTIVO': return 'bg-green-100 !text-white';
+      case 'INACTIVO': return 'bg-yellow-100 !text-white';
+      case 'RETIRADO': return 'bg-red-100 !text-white';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -229,25 +230,30 @@ export default function GruposSVGA() {
   return (
     <div className="min-h-screen bg-slate-100">
       {/* Header SVGA */}
-      <header className="bg-blue-900 text-white py-4 px-6 shadow-lg">
+      <header className="bg-blue-900 text-white py-4 px-8 shadow-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <SafeLink href="/dashboard/coordinador" className="text-white hover:text-blue-200">
-              ← Volver al Dashboard
+            <SafeLink href="/dashboard/coordinador" className="text-white hover:text-blue-200 transition flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Volver
             </SafeLink>
             <div className="h-6 w-px bg-blue-700"></div>
             <h1 className="text-xl font-bold">SVGA - Sistema Virtual de Gestión Académica</h1>
           </div>
           <div className="flex items-center space-x-4">
-            <select 
-              value={semester} 
+            <Select
+              label=""
+              value={semester}
               onChange={(e) => setSemester(e.target.value)}
-              className="bg-blue-800 text-white border border-blue-700 rounded px-3 py-1"
-            >
-              <option value="2025-1">2025-1</option>
-              <option value="2024-2">2024-2</option>
-              <option value="2024-1">2024-1</option>
-            </select>
+              options={[
+                { value: '2025-1', label: '2025-1' },
+                { value: '2024-2', label: '2024-2' },
+                { value: '2024-1', label: '2024-1' }
+              ]}
+              className="bg-white !text-slate-900 border border-slate-300 rounded-xl px-3 py-1 min-w-[115px]"
+            />
             <span className="bg-yellow-400 text-blue-900 rounded-full px-3 py-1 font-bold">SVGA</span>
           </div>
         </div>
@@ -503,7 +509,7 @@ export default function GruposSVGA() {
                               <td className="px-6 py-4 whitespace-nowrap text-center">
                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                   student.notaFinal !== undefined
-                                    ? student.notaFinal >= 3.0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    ? student.notaFinal >= 3.0 ? 'bg-green-100 !text-white' : 'bg-red-100 !text-white'
                                     : 'bg-gray-100 text-gray-800'
                                 }`}>
                                   {student.notaFinal !== undefined

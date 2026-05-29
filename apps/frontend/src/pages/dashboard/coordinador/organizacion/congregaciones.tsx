@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSafeRouter } from "../../../../hooks/useSafeRouter";
 import SafeLink from "../../../../components/SafeLink";
+import Select from "../../../../components/Select";
 import { useAuth, useAuthenticatedFetch } from "../../../../contexts/AuthContext";
 
 interface District {
@@ -61,6 +62,19 @@ export default function CongregacionesPage() {
     return null; // El AuthContext se encargará de redirigir
   }
 
+  const getResponseMessage = async (response: Response, fallback: string) => {
+    if (response.status === 401) {
+      return 'Sesión expirada o inválida. Inicia sesión nuevamente.';
+    }
+
+    try {
+      const data = await response.json();
+      return data?.message || fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   const fetchData = async () => {
     try {
       const [congregationsRes, districtsRes] = await Promise.all([
@@ -69,7 +83,9 @@ export default function CongregacionesPage() {
       ]);
 
       if (!congregationsRes.ok || !districtsRes.ok) {
-        throw new Error('Error al cargar datos');
+        const badResponse = !congregationsRes.ok ? congregationsRes : districtsRes;
+        const message = await getResponseMessage(badResponse, 'Error al cargar datos');
+        throw new Error(message);
       }
 
       const [congregationsData, districtsData] = await Promise.all([
@@ -77,11 +93,37 @@ export default function CongregacionesPage() {
         districtsRes.json()
       ]);
 
-      setCongregations(congregationsData);
-      setDistricts(districtsData);
+      setCongregations((congregationsData || []).map((congregation: any) => ({
+        id: congregation.id,
+        name: congregation.name ?? congregation.nombre ?? '',
+        description: congregation.description ?? congregation.descripcion,
+        districtId: congregation.districtId,
+        district: congregation.district
+          ? {
+              id: congregation.district.id,
+              name: congregation.district.name ?? congregation.district.nombre ?? ''
+            }
+          : undefined,
+        createdAt: congregation.createdAt ?? congregation.fecha_creacion,
+        updatedAt: congregation.updatedAt ?? congregation.fecha_actualizacion,
+      })));
+      setDistricts((districtsData || []).map((district: any) => ({
+        id: district.id,
+        name: district.name ?? district.nombre ?? ''
+      })));
     } catch (error) {
       console.error('Error fetching data:', error);
-      setError('Error al cargar los datos');
+      const isAuthError =
+        error instanceof Error &&
+        (error.message.includes('Authentication failed') ||
+          error.message.includes('No authentication token available'));
+      setError(
+        isAuthError
+          ? 'Sesión expirada o inválida. Inicia sesión nuevamente.'
+          : error instanceof Error
+            ? error.message
+            : 'Error al cargar los datos',
+      );
     } finally {
       setLoading(false);
     }
@@ -92,11 +134,17 @@ export default function CongregacionesPage() {
     try {
       const response = await authenticatedFetch('/api/congregations', {
         method: 'POST',
-        body: JSON.stringify(createForm)
+        body: JSON.stringify({
+          nombre: createForm.name,
+          descripcion: createForm.description || undefined,
+          districtId: createForm.districtId,
+          esCentroPractica: false
+        })
       });
 
       if (!response.ok) {
-        throw new Error('Error al crear congregación');
+        const message = await getResponseMessage(response, 'Error al crear congregación');
+        throw new Error(message);
       }
 
       setCreateForm({ name: '', description: '', districtId: '' });
@@ -104,7 +152,7 @@ export default function CongregacionesPage() {
       fetchData();
     } catch (error) {
       console.error('Error creating congregation:', error);
-      setError('Error al crear la congregación');
+      setError(error instanceof Error ? error.message : 'Error al crear la congregación');
     }
   };
 
@@ -116,9 +164,8 @@ export default function CongregacionesPage() {
       const response = await authenticatedFetch(`/api/congregations/${editingCongregation.id}`, {
         method: 'PUT',
         body: JSON.stringify({
-          name: editingCongregation.name,
-          description: editingCongregation.description,
-          districtId: editingCongregation.districtId
+          nombre: editingCongregation.name,
+          descripcion: editingCongregation.description || undefined
         })
       });
 
@@ -176,20 +223,13 @@ export default function CongregacionesPage() {
       {/* Header */}
       <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <SafeLink href="/dashboard/coordinador/organizacion" className="text-white hover:text-blue-200">
-            ← Volver a Organización
+          <SafeLink href="/dashboard/coordinador/organizacion" className="text-white hover:text-blue-200 transition flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Volver
           </SafeLink>
           <h1 className="text-xl font-bold">SION Prácticas FTR - Congregaciones</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <span>Coordinador</span>
-          <span className="bg-yellow-400 text-blue-900 rounded-full px-3 py-1 font-bold">C</span>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded transition"
-          >
-            Cerrar Sesión
-          </button>
         </div>
       </header>
 
@@ -237,17 +277,17 @@ export default function CongregacionesPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium !text-slate-800 mb-1">Distrito</label>
-                <select
+                <Select
+                  label=""
                   required
                   value={createForm.districtId}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, districtId: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 !text-black"
-                >
-                  <option value="">Seleccionar Distrito</option>
-                  {districts.map(district => (
-                    <option key={district.id} value={district.id}>{district.name}</option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: 'Seleccionar Distrito' },
+                    ...districts.map(district => ({ value: district.id, label: district.name }))
+                  ]}
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2 !text-black"
+                />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium !text-slate-800 mb-1">Descripción</label>
@@ -255,7 +295,7 @@ export default function CongregacionesPage() {
                   type="text"
                   value={createForm.description}
                   onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm !text-black"
                 />
               </div>
               <div className="md:col-span-2 flex gap-2">
@@ -278,35 +318,35 @@ export default function CongregacionesPage() {
         )}
 
         {/* Lista de Congregaciones */}
-        <div className="bg-white rounded-lg shadow w-full">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium !text-slate-900">Congregaciones Registradas ({congregations.length})</h3>
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 w-full overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
+            <h3 className="text-lg font-semibold !text-slate-900">Congregaciones Registradas</h3>
           </div>
           
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full">
+              <thead className="bg-blue-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium !text-slate-800 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold !text-blue-900 uppercase tracking-wider">
                     Nombre
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium !text-slate-800 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold !text-blue-900 uppercase tracking-wider">
                     Distrito
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium !text-slate-800 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold !text-blue-900 uppercase tracking-wider">
                     Descripción
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium !text-slate-800 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold !text-blue-900 uppercase tracking-wider">
                     Fecha de Creación
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium !text-slate-800 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-semibold !text-blue-900 uppercase tracking-wider">
                     Acciones
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-slate-200">
                 {congregations.map((congregation) => (
-                  <tr key={congregation.id} className="hover:bg-gray-50">
+                  <tr key={congregation.id} className="hover:bg-blue-50/40 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium !text-slate-900">{congregation.name}</div>
                     </td>
@@ -327,13 +367,13 @@ export default function CongregacionesPage() {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => setEditingCongregation(congregation)}
-                          className="text-indigo-600 hover:text-indigo-900"
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition"
                         >
                           Editar
                         </button>
                         <button
                           onClick={() => handleDeleteCongregation(congregation.id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-md text-xs font-semibold transition"
                         >
                           Eliminar
                         </button>
@@ -355,66 +395,66 @@ export default function CongregacionesPage() {
 
         {/* Modal de Edición */}
         {editingCongregation && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium !text-slate-900">Editar Congregación</h3>
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                <h3 className="text-xl font-semibold !text-slate-900">Editar Congregación</h3>
                 <button
                   type="button"
                   onClick={() => setEditingCongregation(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 !text-slate-600 flex items-center justify-center transition"
                 >
                   ✕
                 </button>
               </div>
               
-              <form onSubmit={handleUpdateCongregation} className="space-y-4">
+              <form onSubmit={handleUpdateCongregation} className="p-6 space-y-5">
                 <div>
-                  <label className="block text-sm font-medium !text-slate-800 mb-1">Nombre</label>
+                  <label className="block text-sm font-semibold !text-slate-800 mb-2">Nombre</label>
                   <input
                     type="text"
                     required
                     value={editingCongregation.name}
                     onChange={(e) => setEditingCongregation(prev => prev ? { ...prev, name: e.target.value } : null)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    className="w-full border border-slate-300 rounded-xl px-4 py-2.5 !text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium !text-slate-800 mb-1">Distrito</label>
-                  <select
+                  <label className="block text-sm font-semibold !text-slate-800 mb-2">Distrito</label>
+                  <Select
+                    label=""
                     required
                     value={editingCongregation.districtId}
                     onChange={(e) => setEditingCongregation(prev => prev ? { ...prev, districtId: e.target.value } : null)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                  >
-                    <option value="">Seleccionar Distrito</option>
-                    {districts.map(district => (
-                      <option key={district.id} value={district.id}>{district.name}</option>
-                    ))}
-                  </select>
+                    options={[
+                      { value: '', label: 'Seleccionar Distrito' },
+                      ...districts.map(district => ({ value: district.id, label: district.name }))
+                    ]}
+                    className="w-full border border-slate-300 rounded-xl px-3 py-2.5 !text-slate-900"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium !text-slate-800 mb-1">Descripción</label>
+                  <label className="block text-sm font-semibold !text-slate-800 mb-2">Descripción</label>
                   <input
                     type="text"
                     value={editingCongregation.description || ''}
                     onChange={(e) => setEditingCongregation(prev => prev ? { ...prev, description: e.target.value } : null)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                    className="w-full border border-slate-300 rounded-xl px-4 py-2.5 !text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition"
                   />
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    type="submit"
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm"
-                  >
-                    Actualizar
-                  </button>
+                <div className="flex justify-end gap-3 pt-2">
                   <button
                     type="button"
                     onClick={() => setEditingCongregation(null)}
-                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm"
+                    className="bg-slate-200 hover:bg-slate-300 !text-slate-800 px-5 py-2.5 rounded-xl text-sm font-semibold transition"
                   >
                     Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition"
+                  >
+                    Actualizar
                   </button>
                 </div>
               </form>

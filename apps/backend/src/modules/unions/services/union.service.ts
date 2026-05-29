@@ -4,76 +4,78 @@ import { CreateUnionDto, UpdateUnionDto } from '../dtos/union.dto';
 export class UnionService {
   async create(dto: CreateUnionDto) {
     if (!dto.nombre) throw new Error('El nombre es obligatorio');
-    
+
     // Verificar si ya existe una unión con ese nombre
     const existingUnion = await prisma.union.findFirst({
       where: {
         nombre: {
           equals: dto.nombre,
-          mode: 'insensitive'
-        }
-      }
+          mode: 'insensitive',
+        },
+      },
     });
-    
+
     if (existingUnion) {
       throw new Error('Ya existe una unión con ese nombre');
     }
-    
+
     return await prisma.union.create({
       data: {
-        nombre: dto.nombre
-      }
+        nombre: dto.nombre,
+        descripcion: dto.descripcion,
+      },
     });
   }
 
   async update(id: string, dto: UpdateUnionDto) {
     // Verificar si la unión existe
     const existingUnion = await prisma.union.findUnique({
-      where: { id }
+      where: { id },
     });
-    
+
     if (!existingUnion) {
       throw new Error('Unión no encontrada');
     }
-    
+
     // Verificar nombre duplicado si se está actualizando
     if (dto.nombre) {
       const duplicateUnion = await prisma.union.findFirst({
         where: {
           nombre: {
             equals: dto.nombre,
-            mode: 'insensitive'
+            mode: 'insensitive',
           },
           id: {
-            not: id
-          }
-        }
+            not: id,
+          },
+        },
       });
-      
+
       if (duplicateUnion) {
         throw new Error('Ya existe una unión con ese nombre');
       }
     }
-    
+
     return await prisma.union.update({
       where: { id },
       data: {
-        ...(dto.nombre && { nombre: dto.nombre })
-      }
+        ...(dto.nombre && { nombre: dto.nombre }),
+        ...(dto.descripcion !== undefined && { descripcion: dto.descripcion }),
+      },
     });
   }
 
   async softDelete(id: string) {
     const existingUnion = await prisma.union.findUnique({
-      where: { id }
+      where: { id },
     });
-    
+
     if (!existingUnion) {
       throw new Error('Unión no encontrada');
     }
-    
+
     return await prisma.union.delete({
-      where: { id }
+      where: { id },
     });
   }
 
@@ -84,19 +86,19 @@ export class UnionService {
         ...(nombre && {
           nombre: {
             contains: nombre,
-            mode: 'insensitive'
-          }
-        })
+            mode: 'insensitive',
+          },
+        }),
       },
       orderBy: {
-        fecha_creacion: 'desc'
-      }
+        fecha_creacion: 'desc',
+      },
     });
   }
 
   async findById(id: string) {
     return await prisma.union.findUnique({
-      where: { id }
+      where: { id },
     });
   }
 }

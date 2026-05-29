@@ -149,17 +149,23 @@ export class UserService {
     }>
   > {
     const userRoles = await this.getUserRoles(userId);
-    const permissions = new Map();
+    const permissions = new Map<string, { id: string; nombre: string; estado: string }>();
+
+    type RolePermission = {
+      permission?: {
+        id: string;
+        nombre: string;
+        estado: string;
+      } | null;
+    };
 
     userRoles.forEach((role) => {
-      role.permissions?.forEach(
-        (rolePermission: { permission: { id: string; estado: string } }) => {
-          const permission = rolePermission.permission;
-          if (permission && permission.estado === 'ACTIVO') {
-            permissions.set(permission.id, permission);
-          }
-        },
-      );
+      role.permissions?.forEach((rolePermission: RolePermission) => {
+        const permission = rolePermission.permission;
+        if (permission && permission.estado === 'ACTIVO') {
+          permissions.set(permission.id, permission);
+        }
+      });
     });
 
     return Array.from(permissions.values());

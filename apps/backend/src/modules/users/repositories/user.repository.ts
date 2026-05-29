@@ -47,17 +47,14 @@ export class UserRepository {
   }
 
   async create(data: Partial<User> & { nombre?: string }): Promise<User> {
-    // Transformar campos si es necesario
-    const toPersist: Record<string, unknown> = { ...data };
+    // Transformar campos y eliminar campos no válidos para Prisma
+    const { name, ...restData } = data;
 
-    // Si recibimos name y no nombre, copiar a nombre
-    if (data.name !== undefined && !data.nombre) {
-      toPersist.nombre = data.name;
-    }
+    const toPersist: Record<string, unknown> = { ...restData };
 
-    // Si recibimos nombre y no name, copiar a name
-    if (data.nombre !== undefined && !data.name) {
-      toPersist.name = data.nombre;
+    // Si recibimos name, copiar a nombre
+    if (name !== undefined && !toPersist.nombre) {
+      toPersist.nombre = name;
     }
 
     const user = await prisma.user.create({
@@ -71,16 +68,17 @@ export class UserRepository {
     id: string,
     data: { name?: string | null; isActive?: boolean; password?: string | null },
   ): Promise<User> {
-    // Si recibimos isActive, traducirlo a estado para persistir
-    const toPersist: Record<string, unknown> = { ...data };
-    if (typeof data.isActive === 'boolean') {
-      toPersist.estado = data.isActive ? 'ACTIVO' : 'INACTIVO';
-      delete toPersist.isActive;
+    // Eliminar campos no válidos para Prisma y transformar
+    const { name, isActive, ...restData } = data;
+    const toPersist: Record<string, unknown> = { ...restData };
+
+    // Si recibimos isActive, traducirlo a estado
+    if (typeof isActive === 'boolean') {
+      toPersist.estado = isActive ? 'ACTIVO' : 'INACTIVO';
     }
-    // Si recibimos name, traducirlo a nombre para persistir
-    if (data.name !== undefined) {
-      toPersist.nombre = data.name;
-      delete toPersist.name;
+    // Si recibimos name, traducirlo a nombre
+    if (name !== undefined) {
+      toPersist.nombre = name;
     }
 
     const user = await prisma.user.update({

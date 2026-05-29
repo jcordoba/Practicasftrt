@@ -176,7 +176,7 @@ export const verifyToken = async (req: Request, res: Response) => {
       user: {
         id: user.id,
         email: user.email,
-        name: user.nombre,
+        name: user.nombre || user.email.split('@')[0], // Fallback al email si nombre es null
         roles: user.roles?.map((ur) => ur.role.nombre) || [],
       },
     });

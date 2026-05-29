@@ -8,6 +8,13 @@ const UserDropdown: React.FC = () => {
   const { isOpen, toggleDropdown, dropdownRef } = useUserDropdown();
   const router = useRouter();
 
+  React.useEffect(() => {
+    console.log('[UserDropdown Debug] User object:', user);
+    console.log('[UserDropdown Debug] User name:', user?.name);
+    console.log('[UserDropdown Debug] User email:', user?.email);
+    console.log('[UserDropdown Debug] User roles:', user?.roles);
+  }, [user]);
+
   const handleLogout = () => {
     logout();
     // Redirect to login page
@@ -15,8 +22,8 @@ const UserDropdown: React.FC = () => {
   };
 
   const getUserInitials = () => {
-    if (!user?.name) return 'U';
-    const names = user.name.split(' ');
+    const displayName = user?.name && user.name.trim() ? user.name : user?.email || 'U';
+    const names = displayName.split(' ');
     if (names.length === 1) return names[0].charAt(0).toUpperCase();
     return `${names[0].charAt(0)}${names[names.length - 1].charAt(0)}`.toUpperCase();
   };
@@ -37,26 +44,27 @@ const UserDropdown: React.FC = () => {
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative" ref={dropdownRef} title="Menú de usuario (Perfil y Logout)">
       <button
         onClick={toggleDropdown}
-        className="flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-1 transition-all duration-200 hover:bg-blue-800"
+        className="flex items-center gap-2 md:gap-3 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg p-1 transition-all duration-200 hover:bg-blue-800"
         aria-haspopup="true"
         aria-expanded={isOpen}
+        title="Haz clic para ver tu perfil y opciones"
       >
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-sm transition-all duration-200 hover:bg-blue-500">
+        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-sm transition-all duration-200 hover:bg-blue-500 flex-shrink-0">
           {getUserInitials()}
         </div>
-        <div className="hidden md:block text-left">
-          <div className="text-sm font-medium !text-white truncate max-w-[120px]">
-            {user?.name || 'Usuario'}
+        <div className="hidden md:block text-left min-w-0">
+          <div className="text-sm font-medium !text-white truncate max-w-[150px]">
+            {user?.name && user.name.trim() ? user.name : user?.email?.split('@')[0] || 'Usuario'}
           </div>
-          <div className="text-xs !text-blue-200">
+          <div className="text-xs !text-blue-200 truncate">
             {getRoleDisplay()}
           </div>
         </div>
         <svg 
-          className={`w-4 h-4 !text-white transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 !text-white transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
           fill="none" 
           stroke="currentColor" 
           viewBox="0 0 24 24"
@@ -75,7 +83,7 @@ const UserDropdown: React.FC = () => {
         >
           <div className="px-4 py-3 border-b border-gray-100">
             <p className="text-sm font-medium !text-gray-900 truncate">
-              {user?.name || 'Usuario'}
+              {user?.name && user.name.trim() ? user.name : user?.email?.split('@')[0] || 'Usuario'}
             </p>
             <p className="text-xs !text-gray-500">
               {user?.email || 'usuario@example.com'}
@@ -91,8 +99,7 @@ const UserDropdown: React.FC = () => {
               role="menuitem"
               onClick={() => {
                 toggleDropdown();
-                // TODO: Implement profile/config page
-                console.log('Navigate to profile/config');
+                router.push('/dashboard/estudiante/perfil');
               }}
             >
               <svg className="w-5 h-5 mr-3 !text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -21,6 +21,12 @@ router.get(
 );
 
 /**
+ * GET /api/placements/my - Obtener asignaciones del usuario autenticado
+ * Accesible para todos los roles autenticados
+ */
+router.get('/my', (req, res) => placementController.findMy(req, res));
+
+/**
  * GET /api/placements/student/:studentId - Obtener asignaciones de un estudiante
  * Accesible para todos los roles autenticados
  */

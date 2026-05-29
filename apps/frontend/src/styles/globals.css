@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --page-bg-start: #f8fafc;
+  --page-bg-end: #eef2f7;
+  --brand-header: #1e3a8a;
   --text-main: #000000;
   --text-strong: #000000;
   --text-muted: #222222;
@@ -12,15 +15,27 @@
   --alert-warning-bg: #fef3c7;
   --alert-warning-text: #1a1a1a;
   --alert-warning-border: #f59e42;
-  --alert-success-bg: #d1fadf;
-  --alert-success-text: #14532d;
-  --alert-success-border: #22c55e;
+  --alert-success-bg: #16a34a;
+  --alert-success-text: #ffffff;
+  --alert-success-border: #15803d;
   --alert-info-bg: #e0e7ff;
   --alert-info-text: #1e40af;
   --alert-info-border: #2563eb;
   --alert-error-bg: #fee2e2;
   --alert-error-text: #991b1b;
   --alert-error-border: #ef4444;
+  --status-pending-bg: #ca8a04;
+  --status-pending-text: #ffffff;
+  --status-pending-border: #a16207;
+  --status-progress-bg: #16a34a;
+  --status-progress-text: #ffffff;
+  --status-progress-border: #15803d;
+  --status-completed-bg: #2563eb;
+  --status-completed-text: #ffffff;
+  --status-completed-border: #1d4ed8;
+  --status-cancelled-bg: #dc2626;
+  --status-cancelled-text: #ffffff;
+  --status-cancelled-border: #b91c1c;
 }
 
 @theme inline {
@@ -34,6 +49,9 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --page-bg-start: #0f172a;
+    --page-bg-end: #111827;
+    --brand-header: #1e3a8a;
     --text-main: #ffffff;
     --text-strong: #ffffff;
     --text-muted: #ededed;
@@ -43,15 +61,27 @@
     --alert-warning-bg: #fbbf24;
     --alert-warning-text: #171717;
     --alert-warning-border: #f59e42;
-    --alert-success-bg: #166534;
-    --alert-success-text: #d1fadf;
-    --alert-success-border: #22c55e;
+    --alert-success-bg: #16a34a;
+    --alert-success-text: #ffffff;
+    --alert-success-border: #15803d;
     --alert-info-bg: #1e40af;
     --alert-info-text: #e0e7ff;
     --alert-info-border: #2563eb;
     --alert-error-bg: #991b1b;
     --alert-error-text: #fee2e2;
     --alert-error-border: #ef4444;
+    --status-pending-bg: #ca8a04;
+    --status-pending-text: #ffffff;
+    --status-pending-border: #a16207;
+    --status-progress-bg: #16a34a;
+    --status-progress-text: #ffffff;
+    --status-progress-border: #15803d;
+    --status-completed-bg: #2563eb;
+    --status-completed-text: #ffffff;
+    --status-completed-border: #1d4ed8;
+    --status-cancelled-bg: #dc2626;
+    --status-cancelled-text: #ffffff;
+    --status-cancelled-border: #b91c1c;
   }
 }
 
@@ -62,6 +92,19 @@ body, th, td, label, span, p, h1, h2, h3, h4, h5, h6, div, input, select, textar
 select, option {
   color: #000 !important;
   background: #fff !important;
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border-radius: 0.75rem;
+  padding-right: 2.25rem !important;
+  background-repeat: no-repeat !important;
+  background-position: right 0.7rem center !important;
+  background-size: 0.9rem !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23475569'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E") !important;
 }
 
 body {
@@ -287,7 +330,39 @@ input:focus, select:focus, textarea:focus {
 
 /* Opacity utilities */
 .bg-opacity-90 {
-  background-color: rgba(30, 58, 138, 0.9); /* blue-900 with 90% opacity */
+  background-color: color-mix(in srgb, var(--brand-header) 90%, transparent); /* brand header with opacity */
+}
+
+.bg-yellow-100.text-yellow-800,
+.bg-yellow-100.\!text-slate-900,
+.bg-yellow-100.\!text-yellow-800 {
+  background-color: var(--status-pending-bg) !important;
+  color: var(--status-pending-text) !important;
+  border-color: var(--status-pending-border) !important;
+}
+
+.bg-green-100.text-green-800,
+.bg-green-100.\!text-slate-900,
+.bg-green-100.\!text-green-800 {
+  background-color: var(--status-progress-bg) !important;
+  color: var(--status-progress-text) !important;
+  border-color: var(--status-progress-border) !important;
+}
+
+.bg-blue-100.text-blue-800,
+.bg-blue-100.\!text-slate-900,
+.bg-blue-100.\!text-blue-800 {
+  background-color: var(--status-completed-bg) !important;
+  color: var(--status-completed-text) !important;
+  border-color: var(--status-completed-border) !important;
+}
+
+.bg-red-100.text-red-800,
+.bg-red-100.\!text-slate-900,
+.bg-red-100.\!text-red-800 {
+  background-color: var(--status-cancelled-bg) !important;
+  color: var(--status-cancelled-text) !important;
+  border-color: var(--status-cancelled-border) !important;
 }
 
 /* Border utilities */
@@ -376,4 +451,40 @@ input:focus, select:focus, textarea:focus {
 
 .flex-shrink-0 {
   flex-shrink: 0;
+}
+
+.status-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 0.85rem;
+  padding-right: 2rem !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='white'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.status-select-neutral {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 0.85rem;
+  padding-right: 2rem !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23475569'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.status-dropdown-trigger,
+.status-dropdown-trigger *,
+.status-dropdown-menu,
+.status-dropdown-menu * {
+  color: #0f172a !important;
+}
+
+.app-select-trigger,
+.app-select-trigger *,
+.app-select-menu,
+.app-select-menu * {
+  color: #0f172a !important;
 }

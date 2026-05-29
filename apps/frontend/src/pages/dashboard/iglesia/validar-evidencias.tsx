@@ -105,9 +105,9 @@ export default function ValidarEvidencias() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
+      case 'pending': return 'bg-yellow-100 !text-white';
+      case 'approved': return 'bg-green-100 !text-white';
+      case 'rejected': return 'bg-red-100 !text-white';
       default: return 'bg-gray-100 !text-slate-800';
     }
   };
@@ -136,13 +136,13 @@ export default function ValidarEvidencias() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Enhanced Header with glassmorphism effect */}
-      <header className="w-full bg-blue-900 bg-opacity-90 backdrop-blur-lg text-white py-4 px-6 flex justify-between items-center sticky top-0 z-40 shadow-md">
+      <header className="w-full bg-blue-900 text-white py-4 px-8 flex justify-between items-center sticky top-0 z-40 shadow-md">
         <div className="flex items-center gap-4">
           <SafeLink href="/dashboard/iglesia" className="text-white hover:text-blue-200 flex items-center">
-            <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Volver al Dashboard
+            Volver
           </SafeLink>
           <h1 className="text-xl font-bold">SION Prácticas FTR</h1>
         </div>
@@ -164,7 +164,7 @@ export default function ValidarEvidencias() {
                 onClick={() => setFilter('all')}
                 className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                   filter === 'all' 
-                    ? 'bg-blue-600 text-white shadow-md' 
+                    ? 'bg-blue-100 !text-white border border-blue-200 shadow-sm' 
                     : 'bg-gray-100 !text-black hover:bg-gray-200'
                 }`}
               >
@@ -174,7 +174,7 @@ export default function ValidarEvidencias() {
                 onClick={() => setFilter('pending')}
                 className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                   filter === 'pending' 
-                    ? 'bg-yellow-500 text-white shadow-md' 
+                    ? 'bg-yellow-100 !text-white border border-yellow-200 shadow-sm' 
                     : 'bg-gray-100 !text-black hover:bg-gray-200'
                 }`}
               >
@@ -184,7 +184,7 @@ export default function ValidarEvidencias() {
                 onClick={() => setFilter('approved')}
                 className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                   filter === 'approved' 
-                    ? 'bg-green-600 text-white shadow-md' 
+                    ? 'bg-green-100 !text-white border border-green-200 shadow-sm' 
                     : 'bg-gray-100 !text-black hover:bg-gray-200'
                 }`}
               >
@@ -194,7 +194,7 @@ export default function ValidarEvidencias() {
                 onClick={() => setFilter('rejected')}
                 className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                   filter === 'rejected' 
-                    ? 'bg-red-600 text-white shadow-md' 
+                    ? 'bg-red-100 !text-white border border-red-200 shadow-sm' 
                     : 'bg-gray-100 !text-black hover:bg-gray-200'
                 }`}
               >
